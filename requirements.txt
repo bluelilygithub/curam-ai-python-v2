@@ -16,8 +16,18 @@ scipy==1.11.2
 seaborn==0.12.2
 
 # LLM and AI Integration
-anthropic==0.25.0
+anthropic==0.34.0  # Updated from 0.25.0 to fix Claude API issues
 google-generativeai==0.3.2
 
 # Data Processing and RSS Feeds
 feedparser==6.0.10
+
+# PostgreSQL Database Support (new)
+psycopg2-binary==2.9.9
+
+# Additional API Integrations (new)
+huggingface-hub==0.20.2
+stability-sdk==0.8.6
+
+# Email Validation for MailChannels (new)
+email-validator==2.1.0
