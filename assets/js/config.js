@@ -13,7 +13,7 @@ const APP_CONFIG = {
     api: {
         // Production API URL (Railway deployment)
         // TODO: Update this with your actual Railway URL
-        baseUrl: 'https://curam-ai-python-production.up.railway.app',
+        baseUrl: 'https://curam-ai-python-v2-production.up.railway.app',
         
         // Request configuration
         timeout: 30000, // 30 seconds
@@ -126,7 +126,7 @@ const APP_CONFIG = {
         
         production: {
             // UPDATE THIS LINE (around line 118):
-            apiUrl: 'https://curam-ai-python-production.up.railway.app',
+            apiUrl: 'https://curam-ai-python-v2-production.up.railway.app',
             debug: false,
             mockData: false,
             showConsoleInfo: false,
@@ -243,7 +243,7 @@ function detectEnvironment() {
  * Get API base URL based on current environment
  */
 function getApiBaseUrl() {
-    return 'https://curam-ai-python-production.up.railway.app';
+    return 'https://curam-ai-python-v2-production.up.railway.app';
 }
 
 /**
