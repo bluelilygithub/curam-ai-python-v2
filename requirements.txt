@@ -22,6 +22,7 @@ google-generativeai==0.3.2
 
 # Data Processing and RSS Feeds
 feedparser==6.0.10
+requests==2.31.0
 
 # PostgreSQL Database Support (new)
 psycopg2-binary==2.9.9
