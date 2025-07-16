@@ -79,11 +79,13 @@ services = initialize_services()
 
 
 #--------------------------------------
+
 @app.route('/debug/claude')
 def debug_claude():
-    """Temporary Claude debug endpoint"""
+    """Debug Claude with proxy handling"""
     import traceback
     import sys
+    import os
     
     debug_info = []
     debug_info.append("=== CLAUDE DEBUG INFO ===")
@@ -93,14 +95,21 @@ def debug_claude():
         import anthropic
         debug_info.append(f"Anthropic version: {anthropic.__version__}")
         
+        # Check for proxy environment variables
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        for var in proxy_vars:
+            if os.getenv(var):
+                debug_info.append(f"Found proxy: {var}={os.getenv(var)}")
+        
         # Test API key
         api_key = Config.CLAUDE_API_KEY
         debug_info.append(f"API key configured: {'Yes' if api_key else 'No'}")
-        if api_key:
-            debug_info.append(f"API key length: {len(api_key)}")
         
-        # Test client creation
-        client = anthropic.Anthropic(api_key=api_key)
+        # Try with explicit proxy handling
+        client = anthropic.Anthropic(
+            api_key=api_key,
+            base_url="https://api.anthropic.com",
+        )
         debug_info.append("Client created successfully")
         
         # Test minimal request
@@ -116,6 +125,8 @@ def debug_claude():
         debug_info.append(f"Traceback: {traceback.format_exc()}")
     
     return "<pre>" + "\n".join(debug_info) + "</pre>"
+
+    
 #---------------------------------------
 
 @app.route('/')

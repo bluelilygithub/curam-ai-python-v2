@@ -16,7 +16,8 @@ scipy==1.11.2
 seaborn==0.12.2
 
 # LLM and AI Integration
-anthropic==0.28.1  # Stable version without httpx conflicts
+anthropic==0.28.1  # Stable version
+httpx==0.24.1  # Pin compatible httpx version
 google-generativeai==0.3.2
 
 # Data Processing and RSS Feeds
