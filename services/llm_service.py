@@ -28,33 +28,34 @@ class LLMService:
         
         if Config.GEMINI_ENABLED:
             self._init_gemini()
-    
-    def _init_claude(self):
-        """Initialize Claude client with working models from your JS app"""
-        try:
-            if not Config.CLAUDE_API_KEY:
-                logger.warning("Claude API key not configured")
-                return
-            
-            import anthropic
-            
-            # Use explicit, minimal initialization
-            self.claude_client = anthropic.Anthropic(
-                api_key=Config.CLAUDE_API_KEY.strip(),
-                timeout=Config.LLM_TIMEOUT,
-                max_retries=Config.LLM_MAX_RETRIES
-            )
-            
-            # Test connection with models that work in your JS app
-            self._test_claude_connection()
-            logger.info(f"Claude client initialized with model: {self.working_claude_model}")
-            
-        except ImportError:
-            logger.error("anthropic library not installed")
-            self.claude_client = None
-        except Exception as e:
-            logger.error(f"Claude initialization failed: {e}")
-            self.claude_client = None
+ 
+
+#---------------------------------------------------
+
+def _init_claude(self):
+    """Initialize Claude client with working configuration"""
+    try:
+        if not Config.CLAUDE_API_KEY:
+            logger.warning("Claude API key not configured")
+            return
+        
+        import anthropic
+        
+        # Use the working configuration from debug
+        self.claude_client = anthropic.Anthropic(
+            api_key=Config.CLAUDE_API_KEY.strip(),
+            base_url="https://api.anthropic.com"
+        )
+        
+        # Test with working model
+        self._test_claude_connection()
+        logger.info(f"Claude client initialized with model: {self.working_claude_model}")
+        
+    except Exception as e:
+        logger.error(f"Claude initialization failed: {e}")
+        self.claude_client = None
+
+#--------------------------------------------
     
     def _init_gemini(self):
         """Initialize Gemini client with working models from your other project"""
@@ -236,3 +237,22 @@ Build upon this context to provide your comprehensive analysis."""
         if self.gemini_model:
             providers.append('gemini')
         return providers
+
+
+def _test_claude_connection(self):
+    """Test Claude connection with working model"""
+    for model in Config.CLAUDE_MODELS:
+        try:
+            response = self.claude_client.messages.create(
+                model=model,
+                max_tokens=5,
+                messages=[{"role": "user", "content": "Hi"}]
+            )
+            self.working_claude_model = model
+            logger.info(f"Claude model {model} working: {response.content[0].text}")
+            return True
+        except Exception as e:
+            logger.warning(f"Claude model {model} test failed: {e}")
+            continue
+    
+    raise Exception("No working Claude models found")
