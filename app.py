@@ -77,6 +77,47 @@ def initialize_services():
 # Initialize services
 services = initialize_services()
 
+
+#--------------------------------------
+@app.route('/debug/claude')
+def debug_claude():
+    """Temporary Claude debug endpoint"""
+    import traceback
+    import sys
+    
+    debug_info = []
+    debug_info.append("=== CLAUDE DEBUG INFO ===")
+    debug_info.append(f"Python version: {sys.version}")
+    
+    try:
+        import anthropic
+        debug_info.append(f"Anthropic version: {anthropic.__version__}")
+        
+        # Test API key
+        api_key = Config.CLAUDE_API_KEY
+        debug_info.append(f"API key configured: {'Yes' if api_key else 'No'}")
+        if api_key:
+            debug_info.append(f"API key length: {len(api_key)}")
+        
+        # Test client creation
+        client = anthropic.Anthropic(api_key=api_key)
+        debug_info.append("Client created successfully")
+        
+        # Test minimal request
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=5,
+            messages=[{"role": "user", "content": "Hi"}]
+        )
+        debug_info.append(f"Test successful: {response.content[0].text}")
+        
+    except Exception as e:
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
+#---------------------------------------
+
 @app.route('/')
 def index():
     """Brisbane Property Intelligence API information"""
