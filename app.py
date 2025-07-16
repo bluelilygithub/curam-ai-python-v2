@@ -60,6 +60,15 @@ def initialize_services():
     else:
         services['property'] = None
     
+    # Stability AI Service
+    try:
+        from services import StabilityService
+        services['stability'] = StabilityService()
+        logger.info("✅ Stability AI service initialized")
+    except Exception as e:
+        logger.error(f"❌ Stability service initialization failed: {e}")
+        services['stability'] = None
+    
     # Health Checker
     try:
         services['health'] = HealthChecker(services)
@@ -161,6 +170,46 @@ def debug_services():
             debug_info.append(f"Property Service created: {property_service is not None}")
         else:
             debug_info.append("Property Service: Cannot create without LLM service")
+        
+    except Exception as e:
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
+
+@app.route('/debug/stability')
+def debug_stability():
+    """Debug Stability AI service"""
+    import traceback
+    
+    debug_info = []
+    debug_info.append("=== STABILITY AI DEBUG ===")
+    
+    try:
+        # Test Stability Service
+        debug_info.append("Testing Stability AI Service...")
+        from services import StabilityService
+        
+        stability_service = StabilityService()
+        debug_info.append(f"Stability Service created: {stability_service is not None}")
+        
+        if stability_service:
+            debug_info.append(f"Enabled: {stability_service.enabled}")
+            debug_info.append(f"API Key configured: {bool(stability_service.api_key)}")
+            debug_info.append(f"Base URL: {stability_service.base_url}")
+            debug_info.append(f"Models available: {list(stability_service.models.keys())}")
+            
+            # Test health status
+            health_status = stability_service.get_health_status()
+            debug_info.append(f"Health status: {health_status}")
+            
+            # Test connection (if enabled)
+            if stability_service.enabled:
+                debug_info.append("\nTesting API connection...")
+                connection_test = stability_service.test_connection()
+                debug_info.append(f"Connection test: {connection_test}")
+            else:
+                debug_info.append("Connection test skipped - service not enabled")
         
     except Exception as e:
         debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
