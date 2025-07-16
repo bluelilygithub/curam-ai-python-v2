@@ -1,379 +1,169 @@
-/**
- * Brisbane Property Intelligence - Frontend Configuration
- * 
- * Environment-specific configuration for the frontend application.
- * Update these settings based on your deployment environment.
- * 
- * @version 2.0.0
- * @author Property Intelligence Team
- */
+"""
+Configuration management for Brisbane Property Intelligence
+Centralized configuration with validation
+"""
 
-const APP_CONFIG = {
-    // API Configuration
-    api: {
-        // Production API URL (Railway deployment)
-        // TODO: Update this with your actual Railway URL
-        baseUrl: 'https://curam-ai-python-v2-production.up.railway.app',
-        
-        // Request configuration
-        timeout: 30000, // 30 seconds
-        retries: 3,
-        
-        // Headers for all API requests
-        defaultHeaders: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+class Config:
+    """Centralized configuration management"""
+    
+    # API Keys
+    CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY')
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    
+    # New API Keys
+    STABILITY_API_KEY = os.getenv('STABILITY_API_KEY')
+    
+    # LLM Configuration
+    LLM_TIMEOUT = int(os.getenv('LLM_TIMEOUT', '30'))
+    LLM_MAX_RETRIES = int(os.getenv('LLM_MAX_RETRIES', '3'))
+    
+    # Claude Models (in priority order)
+    CLAUDE_MODELS = [
+        'claude-3-5-sonnet-20241022',
+        'claude-3-haiku-20240307',
+        'claude-3-sonnet-20240229'
+    ]
+    
+    # Gemini Models (in priority order)
+    GEMINI_MODELS = [
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-pro'
+    ]
+    
+    # Feature Flags
+    CLAUDE_ENABLED = os.getenv('CLAUDE_ENABLED', 'true').lower() == 'true'
+    GEMINI_ENABLED = os.getenv('GEMINI_ENABLED', 'true').lower() == 'true'
+    STABILITY_ENABLED = os.getenv('STABILITY_ENABLED', 'true').lower() == 'true'
+    
+    # Database
+    DATABASE_PATH = os.getenv('DATABASE_PATH', 'property_intelligence.db')
+    
+    # CORS
+    CORS_ORIGINS = [
+        'https://curam-ai.com.au',
+        'https://curam-ai.com.au/python-hub/',
+        'https://curam-ai.com.au/python-hub-v2/',
+        'https://curam-ai.com.au/ai-intelligence/',
+        'http://localhost:3000',
+        'http://localhost:8000'
+    ]
+    
+    # Add development origins if in development
+    if os.getenv('FLASK_ENV') == 'development':
+        CORS_ORIGINS.append('*')
+    
+    # Brisbane Property Questions
+    PRESET_QUESTIONS = [
+        "What new development applications were submitted in Brisbane this month?",
+        "Which Brisbane suburbs are trending in property news?",
+        "Are there any major infrastructure projects affecting property values?",
+        "What zoning changes have been approved recently?",
+        "Which areas have the most development activity?"
+    ]
+    
+    # RSS Data Sources
+    BRISBANE_RSS_SOURCES = [
+        {
+            'name': 'Brisbane City Council',
+            'url': 'https://www.brisbane.qld.gov.au/about-council/news-media/news/rss',
+            'keywords': ['development', 'planning', 'infrastructure', 'property', 'zoning']
+        }
+    ]
+    
+    # Stability AI Configuration
+    STABILITY_CONFIG = {
+        'base_url': 'https://api.stability.ai/v1',
+        'models': {
+            'chart_generation': 'stable-diffusion-v1-6',
+            'infographic': 'stable-diffusion-xl-1024-v1-0'
         },
-        
-        // CORS configuration
-        mode: 'cors',
-        credentials: 'omit',
-        
-        // API endpoints
-        endpoints: {
-            health: '/health',
-            healthDeep: '/health/deep',
-            questions: '/api/property/questions',
-            analyze: '/api/property/analyze',
-            history: '/api/property/history',
-            stats: '/api/property/stats',
-            reset: '/api/property/reset'
-        }
-    },
-    
-    // UI Configuration
-    ui: {
-        // Auto-refresh intervals (milliseconds)
-        healthCheckInterval: 30000, // 30 seconds
-        
-        // Animation delays
-        typingDelay: 50,
-        fadeDelay: 300,
-        loadingMinDelay: 1000, // Minimum loading time for UX
-        
-        // Pagination
-        defaultHistoryLimit: 50,
-        maxResultsDisplay: 100,
-        
-        // Themes
-        theme: 'professional', // 'professional', 'modern', 'minimal'
-        
-        // Features flags
-        features: {
-            autoRefresh: true,
-            exportFunctionality: false, // Future feature
-            darkMode: false, // Future feature
-            notifications: true,
-            loadingOverlay: true,
-            animatedResults: true,
-            soundEffects: false
-        },
-        
-        // Responsive breakpoints
-        breakpoints: {
-            mobile: 768,
-            tablet: 1024,
-            desktop: 1200
-        }
-    },
-    
-    // Application Information
-    app: {
-        name: 'Brisbane Property Intelligence',
-        version: '2.0.0',
-        description: 'AI-Powered Property Market Analysis for Queensland',
-        author: 'Property Intelligence Team',
-        buildDate: new Date().toISOString(),
-        
-        // Support information
-        support: {
-            email: 'support@curam-ai.com.au',
-            website: 'https://curam-ai.com.au',
-            documentation: 'https://curam-ai.com.au/docs',
-            github: null // Add if open source
-        },
-        
-        // Social links
-        social: {
-            twitter: null,
-            linkedin: null,
-            facebook: null
-        }
-    },
-    
-    // Environment detection and settings
-    environment: {
-        // Auto-detect environment
-        current: detectEnvironment(),
-        
-        // Environment-specific settings
-        development: {
-            apiUrl: 'http://localhost:5000',
-            debug: true,
-            mockData: false,
-            showConsoleInfo: true,
-            enablePerformanceMonitoring: false
-        },
-        
-        staging: {
-            apiUrl: 'https://staging-brisbane-property.up.railway.app',
-            debug: true,
-            mockData: false,
-            showConsoleInfo: true,
-            enablePerformanceMonitoring: true
-        },
-        
-        production: {
-            // UPDATE THIS LINE (around line 118):
-            apiUrl: 'https://curam-ai-python-v2-production.up.railway.app',
-            debug: false,
-            mockData: false,
-            showConsoleInfo: false,
-            enablePerformanceMonitoring: true
-        }
-    },
-    
-    // Performance monitoring
-    performance: {
-        enableTiming: true,
-        enableMemoryTracking: false,
-        logSlowRequests: true,
-        slowRequestThreshold: 5000, // 5 seconds
-        
-        // Request caching
-        enableCache: true,
-        cacheExpiry: 300000, // 5 minutes
-        maxCacheSize: 50
-    },
-    
-    // Analytics & Monitoring (for future use)
-    analytics: {
-        enabled: false,
-        provider: 'none', // 'google', 'mixpanel', 'amplitude'
-        trackingId: '',
-        
-        events: {
-            pageView: true,
-            apiCalls: true,
-            errors: true,
-            userInteractions: true,
-            performanceMetrics: false
-        }
-    },
-    
-    // Error handling
-    errors: {
-        showUserFriendlyMessages: true,
-        logToConsole: true,
-        enableErrorReporting: false,
-        retryFailedRequests: true,
-        maxRetries: 3,
-        retryDelay: 1000, // 1 second
-        fallbackToMockData: false,
-        
-        // User-friendly error messages
-        messages: {
-            networkError: 'Unable to connect to Brisbane Property Intelligence. Please check your internet connection.',
-            serverError: 'Our servers are experiencing issues. Please try again in a moment.',
-            timeoutError: 'The request took too long. Please try again.',
-            parseError: 'Unable to process the response. Please try again.',
-            genericError: 'Something went wrong. Please try again.'
-        }
-    },
-    
-    // Brisbane-specific configuration
-    brisbane: {
-        timezone: 'Australia/Brisbane',
-        currency: 'AUD',
-        locale: 'en-AU',
-        
-        // Default areas of interest
-        defaultSuburbs: [
-            'South Brisbane',
-            'Fortitude Valley', 
-            'New Farm',
-            'Paddington',
-            'Teneriffe',
-            'West End',
-            'Woolloongabba'
-        ],
-        
-        // Property types
-        propertyTypes: [
-            'Apartment',
-            'House',
-            'Townhouse',
-            'Unit',
-            'Land',
-            'Commercial'
-        ]
-    }
-};
-
-/**
- * Detect current environment based on URL and other factors
- */
-function detectEnvironment() {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    
-    // Development environment
-    if (hostname === 'localhost' || 
-        hostname === '127.0.0.1' || 
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        protocol === 'file:') {
-        return 'development';
-    }
-    
-    // Staging environment
-    if (hostname.includes('staging') || 
-        hostname.includes('test') || 
-        hostname.includes('dev.') ||
-        hostname.includes('preview')) {
-        return 'staging';
-    }
-    
-    // Production environment
-    return 'production';
-}
-
-/**
- * Get API base URL based on current environment
- */
-function getApiBaseUrl() {
-    return 'https://curam-ai-python-v2-production.up.railway.app';
-}
-
-/**
- * Get full API endpoint URL
- */
-function getApiEndpoint(endpoint) {
-    const baseUrl = getApiBaseUrl();
-    const endpointPath = APP_CONFIG.api.endpoints[endpoint];
-    
-    if (!endpointPath) {
-        throw new Error(`Unknown API endpoint: ${endpoint}`);
-    }
-    
-    return `${baseUrl}${endpointPath}`;
-}
-
-/**
- * Get API request configuration with defaults
- */
-function getApiConfig(options = {}) {
-    const config = {
-        mode: APP_CONFIG.api.mode,
-        credentials: APP_CONFIG.api.credentials,
-        headers: {
-            ...APP_CONFIG.api.defaultHeaders,
-            ...options.headers
-        },
-        ...options
-    };
-    
-    // Add timeout if supported
-    if ('signal' in options && options.signal === undefined) {
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), APP_CONFIG.api.timeout);
-        config.signal = controller.signal;
-    }
-    
-    return config;
-}
-
-/**
- * Check if debug mode is enabled
- */
-function isDebugMode() {
-    const env = APP_CONFIG.environment.current;
-    return APP_CONFIG.environment[env]?.debug || false;
-}
-
-/**
- * Check if feature is enabled
- */
-function isFeatureEnabled(feature) {
-    return APP_CONFIG.ui.features[feature] || false;
-}
-
-/**
- * Log debug information (only in debug mode)
- */
-function debugLog(...args) {
-    if (isDebugMode()) {
-        const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] [Brisbane Property Intelligence]`, ...args);
-    }
-}
-
-/**
- * Log performance information
- */
-function performanceLog(operation, duration) {
-    if (APP_CONFIG.performance.enableTiming) {
-        const message = `${operation} completed in ${duration}ms`;
-        
-        if (duration > APP_CONFIG.performance.slowRequestThreshold) {
-            console.warn(`[SLOW] ${message}`);
-        } else if (isDebugMode()) {
-            console.log(`[PERF] ${message}`);
+        'default_params': {
+            'steps': 30,
+            'width': 1024,
+            'height': 1024,
+            'cfg_scale': 7.0
         }
     }
-}
-
-/**
- * Get user-friendly error message
- */
-function getUserFriendlyError(error) {
-    if (!APP_CONFIG.errors.showUserFriendlyMessages) {
-        return error.message;
-    }
     
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        return APP_CONFIG.errors.messages.networkError;
-    }
+    @classmethod
+    def validate_config(cls):
+        """Validate critical configuration"""
+        issues = []
+        
+        # LLM Providers
+        if not cls.CLAUDE_API_KEY and cls.CLAUDE_ENABLED:
+            issues.append("CLAUDE_API_KEY missing but Claude is enabled")
+        
+        if not cls.GEMINI_API_KEY and cls.GEMINI_ENABLED:
+            issues.append("GEMINI_API_KEY missing but Gemini is enabled")
+        
+        if not cls.CLAUDE_ENABLED and not cls.GEMINI_ENABLED:
+            issues.append("No LLM providers enabled")
+        
+        # Stability AI
+        if not cls.STABILITY_API_KEY and cls.STABILITY_ENABLED:
+            issues.append("STABILITY_API_KEY missing but Stability AI is enabled")
+        
+        # Timeouts
+        if cls.LLM_TIMEOUT < 5:
+            issues.append("LLM_TIMEOUT too low (minimum 5 seconds)")
+        
+        if issues:
+            logger.warning(f"Configuration issues: {', '.join(issues)}")
+        
+        return len(issues) == 0
     
-    if (error.name === 'AbortError') {
-        return APP_CONFIG.errors.messages.timeoutError;
-    }
+    @classmethod
+    def get_enabled_llm_providers(cls):
+        """Get list of enabled LLM providers"""
+        providers = []
+        if cls.CLAUDE_ENABLED and cls.CLAUDE_API_KEY:
+            providers.append('claude')
+        if cls.GEMINI_ENABLED and cls.GEMINI_API_KEY:
+            providers.append('gemini')
+        return providers
     
-    if (error.message.includes('500') || error.message.includes('502') || error.message.includes('503')) {
-        return APP_CONFIG.errors.messages.serverError;
-    }
+    @classmethod
+    def get_enabled_services(cls):
+        """Get list of all enabled services"""
+        services = []
+        
+        # LLM Services
+        if cls.CLAUDE_ENABLED and cls.CLAUDE_API_KEY:
+            services.append('claude')
+        if cls.GEMINI_ENABLED and cls.GEMINI_API_KEY:
+            services.append('gemini')
+        
+        # Stability AI
+        if cls.STABILITY_ENABLED and cls.STABILITY_API_KEY:
+            services.append('stability_ai')
+        
+        return services
     
-    if (error.message.includes('JSON')) {
-        return APP_CONFIG.errors.messages.parseError;
-    }
-    
-    return APP_CONFIG.errors.messages.genericError;
-}
-
-// Export configuration for use in main application
-window.APP_CONFIG = APP_CONFIG;
-window.getApiBaseUrl = getApiBaseUrl;
-window.getApiEndpoint = getApiEndpoint;
-window.getApiConfig = getApiConfig;
-window.isDebugMode = isDebugMode;
-window.isFeatureEnabled = isFeatureEnabled;
-window.debugLog = debugLog;
-window.performanceLog = performanceLog;
-window.getUserFriendlyError = getUserFriendlyError;
-
-// Initialize configuration logging
-document.addEventListener('DOMContentLoaded', function() {
-    debugLog('Configuration loaded:', {
-        environment: APP_CONFIG.environment.current,
-        apiUrl: getApiBaseUrl(),
-        debug: isDebugMode(),
-        version: APP_CONFIG.app.version,
-        features: Object.keys(APP_CONFIG.ui.features).filter(f => isFeatureEnabled(f))
-    });
-    
-    // Validate critical configuration
-    if (!getApiBaseUrl() || getApiBaseUrl().includes('your-railway-app')) {
-        console.warn('⚠️ WARNING: API URL not configured properly. Please update config.js');
-    }
-});
+    @classmethod
+    def log_config_status(cls):
+        """Log configuration status for debugging"""
+        logger.info("=== Configuration Status ===")
+        
+        # LLM Providers
+        logger.info(f"Claude Enabled: {cls.CLAUDE_ENABLED}")
+        logger.info(f"Claude API Key: {'✓' if cls.CLAUDE_API_KEY else '✗'}")
+        logger.info(f"Gemini Enabled: {cls.GEMINI_ENABLED}")
+        logger.info(f"Gemini API Key: {'✓' if cls.GEMINI_API_KEY else '✗'}")
+        
+        # Stability AI
+        logger.info(f"Stability AI Enabled: {cls.STABILITY_ENABLED}")
+        logger.info(f"Stability AI API Key: {'✓' if cls.STABILITY_API_KEY else '✗'}")
+        
+        # System
+        logger.info(f"LLM Timeout: {cls.LLM_TIMEOUT}s")
+        logger.info(f"Database Path: {cls.DATABASE_PATH}")
+        logger.info(f"All Enabled Services: {cls.get_enabled_services()}")
+        logger.info("=" * 30)
