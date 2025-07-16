@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brisbane Property Intelligence</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+    
+    <!-- Meta Tags for SEO -->
+    <meta name="description" content="AI-Powered Brisbane Property Market Analysis - Professional property intelligence using advanced AI for Queensland real estate insights">
+    <meta name="keywords" content="Brisbane property, Queensland real estate, property analysis, AI property intelligence, Brisbane development">
+    <meta name="author" content="Property Intelligence Team">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Brisbane Property Intelligence">
+    <meta property="og:description" content="AI-Powered Property Market Analysis for Queensland">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://curam-ai.com.au/python-hub/">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <!-- Configuration (Load first) -->
+    <script src="assets/js/config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🏢 Brisbane Property Intelligence</h1>
+            <p>AI-Powered Property Market Analysis for Queensland</p>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h3>📋 Brisbane Property Questions</h3>
+                <div class="preset-questions" id="presetQuestions">
+                    <!-- Questions will be loaded dynamically -->
+                </div>
+                
+                <div class="custom-input">
+                    <label for="customQuestion" class="input-label">
+                        Or ask your own question:
+                    </label>
+                    <textarea 
+                        id="customQuestion" 
+                        placeholder="Enter your Brisbane property question here..."
+                        rows="4"
+                    ></textarea>
+                </div>
+                
+                <button class="analyze-btn" id="analyzeBtn">
+                    🔍 Analyze Property Question
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>🎯 How It Works</h3>
+                <div class="how-it-works">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Select or Enter Question</strong><br>
+                            Choose from preset Brisbane property questions or write your own.
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>AI Analysis</strong><br>
+                            Our Gemini AI analyzes your question with Brisbane-specific data.
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Professional Report</strong><br>
+                            Receive detailed insights about Brisbane's property market.
+                        </div>
+                    </div>
+                    
+                    <div class="ai-powered">
+                        <h4>🤖 AI Powered by:</h4>
+                        <div class="ai-providers">
+                            <div class="provider">Google Gemini 1.5 Flash</div>
+                            <div class="provider">Brisbane City Council Data</div>
+                            <div class="provider">Professional Property Analysis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card results-section">
+                <h3>📊 Analysis Results</h3>
+                <div class="results-content" id="resultsContent">
+                    <div class="placeholder">
+                        <div class="placeholder-icon">🏠</div>
+                        <h4>Ready for Brisbane Property Analysis</h4>
+                        <p>Select a question above to get started with AI-powered property analysis.</p>
+                        <p class="placeholder-subtitle">Your detailed analysis will appear here with professional insights about Brisbane's property market.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Brisbane Property Intelligence</h3>
+            <p>Initializing AI systems...</p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Main Application Script -->
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
