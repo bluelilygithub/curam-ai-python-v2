@@ -45,6 +45,7 @@ class Config:
     CORS_ORIGINS = [
         'https://curam-ai.com.au',
         'https://curam-ai.com.au/python-hub/',
+        'https://curam-ai.com.au/python-hub-v2/',  # Add this line
         'https://curam-ai.com.au/ai-intelligence/',
         'http://localhost:3000',
         'http://localhost:8000'
