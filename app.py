@@ -126,6 +126,48 @@ def debug_claude():
     
     return "<pre>" + "\n".join(debug_info) + "</pre>"
 
+@app.route('/debug/services')
+def debug_services():
+    """Debug service initialization"""
+    import traceback
+    
+    debug_info = []
+    debug_info.append("=== SERVICE DEBUG ===")
+    
+    try:
+        # Test LLM Service directly
+        debug_info.append("Testing LLM Service...")
+        from services import LLMService
+        
+        llm_service = LLMService()
+        debug_info.append(f"LLM Service created: {llm_service is not None}")
+        
+        if llm_service:
+            debug_info.append(f"Claude client: {llm_service.claude_client is not None}")
+            debug_info.append(f"Gemini model: {llm_service.gemini_model is not None}")
+            debug_info.append(f"Working Claude model: {llm_service.working_claude_model}")
+            debug_info.append(f"Working Gemini model: {llm_service.working_gemini_model}")
+            
+            # Test health status
+            health_status = llm_service.get_health_status()
+            debug_info.append(f"Health status: {health_status}")
+        
+        # Test Property Service
+        debug_info.append("\nTesting Property Service...")
+        from services import PropertyAnalysisService
+        
+        if llm_service:
+            property_service = PropertyAnalysisService(llm_service)
+            debug_info.append(f"Property Service created: {property_service is not None}")
+        else:
+            debug_info.append("Property Service: Cannot create without LLM service")
+        
+    except Exception as e:
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
+
     
 #---------------------------------------
 
