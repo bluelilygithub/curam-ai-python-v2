@@ -1,336 +1,294 @@
-# ====================================================================================
-# STEP 1: Add this to your existing services/__init__.py
-# ====================================================================================
-
-# Add this import to your services/__init__.py file:
-from .rss_service import RSSService
-
-# So your services/__init__.py should look like:
-from .llm_service import LLMService
-from .property_service import PropertyAnalysisService  
-from .stability_service import StabilityService
-from .rss_service import RSSService  # Add this line
-
-# ====================================================================================
-# STEP 2: Create services/rss_service.py (Simplified version for your architecture)
-# ====================================================================================
-
 """
-RSS Service for Australian Property Data
-Designed to integrate with existing Brisbane Property Intelligence architecture
+Brisbane Property Intelligence API
+Professional Flask application with clean architecture
 """
 
-import feedparser
-import requests
-from datetime import datetime, timedelta
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import os
+import sys
 import logging
-from typing import List, Dict, Optional
 import time
-import random
+from datetime import datetime
 
-class RSSService:
-    """RSS service that integrates with existing architecture"""
-    
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        
-        # Australian Property RSS Feeds
-        self.feeds = {
-            'realestate_news': {
-                'url': 'https://realestate.com.au/news/feed',
-                'name': 'RealEstate.com.au',
-                'active': True
-            },
-            'smart_property': {
-                'url': 'https://smartpropertyinvestment.com.au/feed',
-                'name': 'Smart Property Investment', 
-                'active': True
-            },
-            'view_property': {
-                'url': 'https://view.com.au/news/feed',
-                'name': 'View.com.au',
-                'active': True
-            },
-            'property_me': {
-                'url': 'https://propertyme.com.au/blog/feed',
-                'name': 'PropertyMe',
-                'active': True
-            }
-        }
-        
-        self.headers = {
-            'User-Agent': 'Brisbane Property Intelligence API/2.0.0',
-            'Accept': 'application/rss+xml, application/xml'
-        }
-        
-        self.cache = {}
-        self.cache_duration = timedelta(hours=1)
-    
-    def get_property_news(self, brisbane_focus: bool = False, max_items: int = 20) -> List[Dict]:
-        """Get recent property news, optionally filtered for Brisbane"""
-        all_articles = []
-        
-        for feed_key, feed_config in self.feeds.items():
-            if not feed_config['active']:
-                continue
-                
-            try:
-                # Check cache first
-                cache_key = f"{feed_key}_cache"
-                if cache_key in self.cache:
-                    cached_data, cached_time = self.cache[cache_key]
-                    if datetime.now() - cached_time < self.cache_duration:
-                        articles = cached_data
-                    else:
-                        articles = self._fetch_feed(feed_config)
-                        self.cache[cache_key] = (articles, datetime.now())
-                else:
-                    articles = self._fetch_feed(feed_config)
-                    self.cache[cache_key] = (articles, datetime.now())
-                
-                all_articles.extend(articles)
-                
-            except Exception as e:
-                self.logger.error(f"Failed to fetch {feed_key}: {e}")
-                continue
-        
-        # Filter for Brisbane if requested
-        if brisbane_focus:
-            brisbane_keywords = ['brisbane', 'queensland', 'qld', 'gold coast', 'sunshine coast']
-            filtered_articles = []
-            for article in all_articles:
-                text = f"{article.get('title', '')} {article.get('summary', '')}".lower()
-                if any(keyword in text for keyword in brisbane_keywords):
-                    article['brisbane_relevant'] = True
-                    filtered_articles.append(article)
-            all_articles = filtered_articles
-        
-        # Sort by date and return limited results
-        all_articles.sort(key=lambda x: x.get('published_timestamp', 0), reverse=True)
-        return all_articles[:max_items]
-    
-    def _fetch_feed(self, feed_config: Dict) -> List[Dict]:
-        """Fetch and parse a single RSS feed"""
-        try:
-            response = requests.get(
-                feed_config['url'], 
-                headers=self.headers, 
-                timeout=15
-            )
-            response.raise_for_status()
-            
-            feed = feedparser.parse(response.content)
-            articles = []
-            
-            for entry in feed.entries[:10]:  # Limit per feed
-                # Parse date
-                published_timestamp = 0
-                try:
-                    if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                        published_timestamp = time.mktime(entry.published_parsed)
-                except:
-                    pass
-                
-                article = {
-                    'title': getattr(entry, 'title', 'No title'),
-                    'link': getattr(entry, 'link', ''),
-                    'summary': getattr(entry, 'summary', '')[:300] + "..." if len(getattr(entry, 'summary', '')) > 300 else getattr(entry, 'summary', ''),
-                    'published': getattr(entry, 'published', ''),
-                    'published_timestamp': published_timestamp,
-                    'source': feed_config['name']
-                }
-                articles.append(article)
-            
-            self.logger.info(f"✅ Fetched {len(articles)} articles from {feed_config['name']}")
-            return articles
-            
-        except Exception as e:
-            self.logger.error(f"❌ Failed to fetch {feed_config['name']}: {e}")
-            return []
-    
-    def get_health_status(self) -> Dict:
-        """Get RSS service health status"""
-        active_feeds = sum(1 for feed in self.feeds.values() if feed['active'])
-        cached_feeds = len(self.cache)
-        
-        return {
-            'rss_service': 'operational',
-            'total_feeds': len(self.feeds),
-            'active_feeds': active_feeds,
-            'cached_feeds': cached_feeds,
-            'cache_duration_hours': self.cache_duration.total_seconds() / 3600
-        }
-    
-    def test_connection(self) -> Dict:
-        """Test RSS feed connectivity"""
-        test_results = {}
-        
-        for feed_key, feed_config in list(self.feeds.items())[:2]:  # Test first 2 feeds
-            try:
-                response = requests.get(feed_config['url'], headers=self.headers, timeout=10)
-                test_results[feed_key] = {
-                    'name': feed_config['name'],
-                    'status': 'success' if response.status_code == 200 else 'error',
-                    'status_code': response.status_code
-                }
-            except Exception as e:
-                test_results[feed_key] = {
-                    'name': feed_config['name'],
-                    'status': 'error',
-                    'error': str(e)
-                }
-        
-        return test_results
+# Import professional services
+from config import Config
+from services import LLMService, PropertyAnalysisService
+from database import PropertyDatabase
+from utils import HealthChecker
 
-# ====================================================================================
-# STEP 3: Update your existing services/property_service.py
-# ====================================================================================
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Add this method to your existing PropertyAnalysisService class:
+app = Flask(__name__)
 
-def get_real_property_context(self, question: str) -> str:
-    """Get real property context from RSS feeds"""
-    try:
-        # Import RSS service
-        from .rss_service import RSSService
-        rss_service = RSSService()
-        
-        # Determine if Brisbane-focused
-        brisbane_keywords = ['brisbane', 'queensland', 'qld']
-        is_brisbane = any(keyword in question.lower() for keyword in brisbane_keywords)
-        
-        # Get relevant news
-        articles = rss_service.get_property_news(brisbane_focus=is_brisbane, max_items=8)
-        
-        if not articles:
-            return self._get_fallback_context(question)
-        
-        # Build context
-        context = f"""
-# Current Australian Property Market Data
-Retrieved from live RSS feeds on {datetime.now().strftime('%Y-%m-%d %H:%M')}
+# Configure CORS
+CORS(app, origins=Config.CORS_ORIGINS)
 
-## Recent Property News:
-"""
-        
-        for i, article in enumerate(articles[:5], 1):
-            context += f"""
-### {i}. {article['title']}
-- **Source**: {article['source']}
-- **Published**: {article['published']}
-- **Summary**: {article['summary']}
-- **Link**: {article['link']}
-"""
-            if article.get('brisbane_relevant'):
-                context += "- **Brisbane Relevance**: ✅ Specific to Brisbane/Queensland\n"
-            context += "\n"
-        
-        context += """
-This is REAL current Australian property market data. Analyze the question using these actual market conditions and news.
-"""
-        
-        return context
-        
-    except Exception as e:
-        self.logger.error(f"RSS integration failed: {e}")
-        return self._get_fallback_context(question)
-
-def _get_fallback_context(self, question: str) -> str:
-    """Fallback context when RSS fails"""
-    return f"""
-# Property Market Analysis Context
-Note: Real-time RSS data temporarily unavailable. Providing analysis based on general Australian property market knowledge.
-
-Question: {question}
-"""
-
-# ====================================================================================
-# STEP 4: Update your app.py (MINIMAL CHANGES)
-# ====================================================================================
-
-# Add these minimal changes to your existing app.py:
-
-# 1. Update the initialize_services() function to include RSS:
 def initialize_services():
     """Initialize all services with proper error handling"""
     services = {}
     
-    # ... your existing code ...
+    # Log configuration status
+    Config.log_config_status()
     
-    # Add RSS Service (insert after Stability AI service)
+    # Database
     try:
-        from services import RSSService
+        services['database'] = PropertyDatabase(Config.DATABASE_PATH)
+        logger.info("✅ Database service initialized")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {e}")
+        services['database'] = None
+    
+    # LLM Service
+    try:
+        services['llm'] = LLMService()
+        logger.info("✅ LLM service initialized")
+    except Exception as e:
+        logger.error(f"❌ LLM service initialization failed: {e}")
+        services['llm'] = None
+    
+    # Property Analysis Service
+    if services['llm']:
+        try:
+            services['property'] = PropertyAnalysisService(services['llm'])
+            logger.info("✅ Property analysis service initialized")
+        except Exception as e:
+            logger.error(f"❌ Property service initialization failed: {e}")
+            services['property'] = None
+    else:
+        services['property'] = None
+    
+    # Stability AI Service
+    try:
+        from services import StabilityService
+        services['stability'] = StabilityService()
+        logger.info("✅ Stability AI service initialized")
+    except Exception as e:
+        logger.error(f"❌ Stability service initialization failed: {e}")
+        services['stability'] = None
+    
+    # RSS Service for Australian Property Data
+    try:
+        from services.rss_service import RSSService
         services['rss'] = RSSService()
         logger.info("✅ RSS service initialized")
     except Exception as e:
         logger.error(f"❌ RSS service initialization failed: {e}")
         services['rss'] = None
     
-    # ... rest of your existing code ...
+    # Health Checker
+    try:
+        services['health'] = HealthChecker(services)
+        logger.info("✅ Health checker initialized")
+    except Exception as e:
+        logger.error(f"❌ Health checker initialization failed: {e}")
+        services['health'] = None
+    
+    # Log service summary
+    available_services = [name for name, service in services.items() if service is not None]
+    logger.info(f"🚀 Services initialized: {', '.join(available_services)}")
     
     return services
 
-# 2. Add RSS status to your existing health endpoint (modify existing route):
-@app.route('/health')
-def health():
-    """Comprehensive health check"""
-    if not services['health']:
-        return jsonify({
-            'status': 'error',
-            'error': 'Health checker not available',
-            'timestamp': datetime.now().isoformat()
-        }), 500
-    
-    health_data = services['health'].get_comprehensive_health()
-    
-    # Add RSS status
-    if services['rss']:
-        try:
-            health_data['services']['rss'] = services['rss'].get_health_status()
-        except Exception as e:
-            health_data['services']['rss'] = {'status': 'error', 'error': str(e)}
-    else:
-        health_data['services']['rss'] = {'status': 'not_available'}
-    
-    return jsonify(health_data)
+# Initialize services
+services = initialize_services()
 
-# 3. Add ONE simple RSS debug endpoint:
+
+#--------------------------------------
+
+@app.route('/debug/claude')
+def debug_claude():
+    """Debug Claude with proxy handling"""
+    import traceback
+    import sys
+    import os
+    
+    debug_info = []
+    debug_info.append("=== CLAUDE DEBUG INFO ===")
+    debug_info.append(f"Python version: {sys.version}")
+    
+    try:
+        import anthropic
+        debug_info.append(f"Anthropic version: {anthropic.__version__}")
+        
+        # Check for proxy environment variables
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        for var in proxy_vars:
+            if os.getenv(var):
+                debug_info.append(f"Found proxy: {var}={os.getenv(var)}")
+        
+        # Test API key
+        api_key = Config.CLAUDE_API_KEY
+        debug_info.append(f"API key configured: {'Yes' if api_key else 'No'}")
+        
+        # Try with explicit proxy handling
+        client = anthropic.Anthropic(
+            api_key=api_key,
+            base_url="https://api.anthropic.com",
+        )
+        debug_info.append("Client created successfully")
+        
+        # Test minimal request
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=5,
+            messages=[{"role": "user", "content": "Hi"}]
+        )
+        debug_info.append(f"Test successful: {response.content[0].text}")
+        
+    except Exception as e:
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
+
+@app.route('/debug/services')
+def debug_services():
+    """Debug service initialization"""
+    import traceback
+    
+    debug_info = []
+    debug_info.append("=== SERVICE DEBUG ===")
+    
+    try:
+        # Test LLM Service directly
+        debug_info.append("Testing LLM Service...")
+        from services import LLMService
+        
+        llm_service = LLMService()
+        debug_info.append(f"LLM Service created: {llm_service is not None}")
+        
+        if llm_service:
+            debug_info.append(f"Claude client: {llm_service.claude_client is not None}")
+            debug_info.append(f"Gemini model: {llm_service.gemini_model is not None}")
+            debug_info.append(f"Working Claude model: {llm_service.working_claude_model}")
+            debug_info.append(f"Working Gemini model: {llm_service.working_gemini_model}")
+            
+            # Test health status
+            health_status = llm_service.get_health_status()
+            debug_info.append(f"Health status: {health_status}")
+        
+        # Test Property Service
+        debug_info.append("\nTesting Property Service...")
+        from services import PropertyAnalysisService
+        
+        if llm_service:
+            property_service = PropertyAnalysisService(llm_service)
+            debug_info.append(f"Property Service created: {property_service is not None}")
+        else:
+            debug_info.append("Property Service: Cannot create without LLM service")
+        
+    except Exception as e:
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
+
+@app.route('/debug/stability')
+def debug_stability():
+    """Debug Stability AI service"""
+    import traceback
+    
+    debug_info = []
+    debug_info.append("=== STABILITY AI DEBUG ===")
+    
+    try:
+        # Test Stability Service
+        debug_info.append("Testing Stability AI Service...")
+        from services import StabilityService
+        
+        stability_service = StabilityService()
+        debug_info.append(f"Stability Service created: {stability_service is not None}")
+        
+        if stability_service:
+            debug_info.append(f"Enabled: {stability_service.enabled}")
+            debug_info.append(f"API Key configured: {bool(stability_service.api_key)}")
+            debug_info.append(f"Base URL: {stability_service.base_url}")
+            debug_info.append(f"Models available: {list(stability_service.models.keys())}")
+            
+            # Test health status
+            health_status = stability_service.get_health_status()
+            debug_info.append(f"Health status: {health_status}")
+            
+            # Test connection (if enabled)
+            if stability_service.enabled:
+                debug_info.append("\nTesting API connection...")
+                connection_test = stability_service.test_connection()
+                debug_info.append(f"Connection test: {connection_test}")
+            else:
+                debug_info.append("Connection test skipped - service not enabled")
+        
+    except Exception as e:
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
+
 @app.route('/debug/rss')
 def debug_rss():
     """Debug RSS service"""
-    if not services['rss']:
-        return jsonify({'rss_service': 'not_available'}), 404
+    import traceback
+    
+    debug_info = []
+    debug_info.append("=== RSS SERVICE DEBUG ===")
     
     try:
-        status = services['rss'].get_health_status()
-        test_results = services['rss'].test_connection()
+        # Test feedparser import
+        import feedparser
+        debug_info.append(f"✅ feedparser available: {getattr(feedparser, '__version__', 'unknown')}")
         
-        return jsonify({
-            'rss_service': 'operational',
-            'status': status,
-            'connection_tests': test_results,
-            'timestamp': datetime.now().isoformat()
-        })
+        # Test requests import
+        import requests
+        debug_info.append(f"✅ requests available: {getattr(requests, '__version__', 'unknown')}")
+        
+        # Test RSS service
+        if services.get('rss'):
+            debug_info.append("✅ RSS service initialized")
+            
+            # Test health status
+            health_status = services['rss'].get_health_status()
+            debug_info.append(f"Health status: {health_status}")
+            
+            # Test connection
+            debug_info.append("\nTesting RSS feed connections...")
+            connection_test = services['rss'].test_connection()
+            debug_info.append(f"Connection test: {connection_test}")
+            
+            # Get sample news
+            debug_info.append("\nFetching sample news...")
+            sample_news = services['rss'].get_recent_news(max_articles=3)
+            debug_info.append(f"Sample articles fetched: {len(sample_news)}")
+            
+            for i, article in enumerate(sample_news[:2], 1):
+                debug_info.append(f"  {i}. {article['title'][:60]}... (from {article['source']})")
+                
+        else:
+            debug_info.append("❌ RSS service not available")
+        
     except Exception as e:
-        return jsonify({
-            'rss_service': 'error',
-            'error': str(e)
-        }), 500
+        debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug_info.append(f"Traceback: {traceback.format_exc()}")
+    
+    return "<pre>" + "\n".join(debug_info) + "</pre>"
 
-# 4. Update your home route to mention RSS integration:
+    
+#---------------------------------------
+
 @app.route('/')
 def index():
     """Brisbane Property Intelligence API information"""
     return jsonify({
         'name': 'Brisbane Property Intelligence API',
-        'version': '2.1.0',  # Increment version
+        'version': '2.1.0',
         'status': 'running',
         'timestamp': datetime.now().isoformat(),
         'description': 'Professional multi-LLM Brisbane property analysis system with real RSS data',
         'features': [
             'Professional Multi-LLM Integration',
             'Claude & Gemini Support',
-            'Real Australian Property RSS Feeds',  # Add this
+            'Real Australian Property RSS Feeds',
             'Database Storage & Analytics',
             'Query History Management',
             'Brisbane Property Focus',
@@ -341,30 +299,324 @@ def index():
         'preset_questions': Config.PRESET_QUESTIONS,
         'api_endpoints': {
             'analyze': 'POST /api/property/analyze',
-            'questions': 'GET /api/property/questions', 
+            'questions': 'GET /api/property/questions',
             'history': 'GET /api/property/history',
             'stats': 'GET /api/property/stats',
             'health': 'GET /health',
-            'rss_debug': 'GET /debug/rss'  # Add this
+            'rss_debug': 'GET /debug/rss'
         }
     })
 
-# ====================================================================================
-# SUMMARY OF CHANGES
-# ====================================================================================
+@app.route('/health')
+def health():
+    """Comprehensive health check"""
+    if not services['health']:
+        return jsonify({
+            'status': 'error',
+            'error': 'Health checker not available',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+    
+    return jsonify(services['health'].get_comprehensive_health())
 
-"""
-This integration strategy:
+@app.route('/health/deep', methods=['GET'])
+def deep_health_check():
+    """Deep health check with actual API tests"""
+    if not services['health']:
+        return jsonify({
+            'status': 'error',
+            'error': 'Health checker not available'
+        }), 500
+    
+    return jsonify(services['health'].perform_deep_health_check())
 
-✅ Leverages your existing clean architecture
-✅ Adds only ONE new service file
-✅ Makes MINIMAL changes to app.py (just a few lines)
-✅ Integrates with your existing PropertyAnalysisService
-✅ Maintains your professional structure
-✅ Provides real RSS data without bloating code
+@app.route('/api/property/questions', methods=['GET'])
+def get_property_questions():
+    """Get preset and popular questions"""
+    try:
+        questions = []
+        
+        # Add preset questions
+        for question in Config.PRESET_QUESTIONS:
+            questions.append({
+                'question': question,
+                'type': 'preset',
+                'count': 0
+            })
+        
+        # Add popular questions from database
+        if services['database']:
+            try:
+                popular = services['database'].get_popular_questions(5)
+                for item in popular:
+                    if item['question'] not in Config.PRESET_QUESTIONS:
+                        questions.append({
+                            'question': item['question'],
+                            'type': 'popular',
+                            'count': item['count']
+                        })
+            except Exception as e:
+                logger.error(f"Failed to get popular questions: {e}")
+        
+        return jsonify({
+            'success': True,
+            'questions': questions,
+            'preset_questions': Config.PRESET_QUESTIONS,
+            'total_count': len(questions),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Get questions error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
-The RSS service will automatically provide real Australian property data
-to your existing analysis pipeline through the get_real_property_context() method.
+@app.route('/api/property/analyze', methods=['POST'])
+def analyze_property_question():
+    """Analyze Brisbane property question using professional pipeline"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Request body must be JSON'
+            }), 400
+        
+        question = data.get('question', '').strip()
+        if not question:
+            return jsonify({
+                'success': False,
+                'error': 'Question is required'
+            }), 400
+        
+        if not services['property']:
+            return jsonify({
+                'success': False,
+                'error': 'Property analysis service not available',
+                'details': 'LLM services may not be configured correctly'
+            }), 500
+        
+        logger.info(f"🔍 Processing property question: {question}")
+        start_time = time.time()
+        
+        # Use professional property analysis service
+        result = services['property'].analyze_property_question(question)
+        processing_time = time.time() - start_time
+        
+        # Store in database if available
+        query_id = None
+        if services['database'] and result['success']:
+            try:
+                query_id = services['database'].store_query(
+                    question=question,
+                    answer=result['final_answer'],
+                    question_type=result['question_type'],
+                    processing_time=processing_time,
+                    success=result['success']
+                )
+                logger.info(f"💾 Query stored with ID: {query_id}")
+            except Exception as e:
+                logger.error(f"Failed to store query: {e}")
+        
+        # Add summary for quick overview
+        analysis_summary = services['property'].get_analysis_summary(result) if services['property'] else {}
+        
+        response = {
+            'success': result['success'],
+            'question': question,
+            'question_type': result['question_type'],
+            'answer': result['final_answer'],
+            'processing_time': round(processing_time, 2),
+            'query_id': query_id,
+            'processing_stages': result['processing_stages'],
+            'analysis_summary': analysis_summary,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Include detailed results if requested
+        if data.get('include_details'):
+            response['detailed_results'] = {
+                'claude_result': result.get('claude_result'),
+                'gemini_result': result.get('gemini_result'),
+                'data_sources': result.get('data_sources')
+            }
+        
+        logger.info(f"✅ Analysis completed in {processing_time:.2f}s")
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"❌ Property analysis error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
-Your existing analyze endpoint will now use real data without any changes needed!
-"""
+@app.route('/api/property/history', methods=['GET'])
+def get_property_history():
+    """Get query history from database"""
+    if not services['database']:
+        return jsonify({
+            'success': False,
+            'error': 'Database not available'
+        }), 500
+    
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        offset = request.args.get('offset', 0, type=int)
+        
+        # Validate parameters
+        if limit > 1000:
+            limit = 1000
+        if limit < 1:
+            limit = 10
+        
+        history = services['database'].get_query_history(limit)
+        
+        return jsonify({
+            'success': True,
+            'history': history,
+            'count': len(history),
+            'limit': limit,
+            'offset': offset,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Get history error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/property/stats', methods=['GET'])
+def get_property_stats():
+    """Get comprehensive database and system statistics"""
+    try:
+        stats = {
+            'timestamp': datetime.now().isoformat(),
+            'system_info': {
+                'version': '2.1.0',
+                'python_version': sys.version.split()[0],
+                'uptime': 'N/A'  # Could implement uptime tracking
+            }
+        }
+        
+        # Database stats
+        if services['database']:
+            try:
+                db_stats = services['database'].get_database_stats()
+                stats['database'] = db_stats
+            except Exception as e:
+                stats['database'] = {'error': str(e)}
+        else:
+            stats['database'] = {'status': 'not_available'}
+        
+        # LLM provider stats
+        if services['llm']:
+            try:
+                llm_health = services['llm'].get_health_status()
+                stats['llm_providers'] = llm_health
+            except Exception as e:
+                stats['llm_providers'] = {'error': str(e)}
+        else:
+            stats['llm_providers'] = {'status': 'not_available'}
+        
+        # Configuration stats
+        stats['configuration'] = {
+            'enabled_providers': Config.get_enabled_llm_providers(),
+            'preset_questions_count': len(Config.PRESET_QUESTIONS),
+            'timeout_settings': {
+                'llm_timeout': Config.LLM_TIMEOUT,
+                'max_retries': Config.LLM_MAX_RETRIES
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'stats': stats,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Get stats error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/property/reset', methods=['POST'])
+def reset_property_database():
+    """Reset database (clear all queries)"""
+    if not services['database']:
+        return jsonify({
+            'success': False,
+            'error': 'Database not available'
+        }), 500
+    
+    try:
+        # Get current stats before reset
+        pre_reset_stats = services['database'].get_database_stats()
+        
+        # Perform reset
+        services['database'].clear_all_data()
+        
+        logger.info(f"🗑️ Database reset completed. Cleared {pre_reset_stats.get('total_queries', 0)} queries")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Database reset successfully',
+            'cleared_queries': pre_reset_stats.get('total_queries', 0),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Reset database error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 'Endpoint not found',
+        'available_endpoints': [
+            'GET /',
+            'GET /health',
+            'GET /api/property/questions',
+            'POST /api/property/analyze',
+            'GET /api/property/history',
+            'GET /api/property/stats',
+            'POST /api/property/reset'
+        ]
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"Internal server error: {error}")
+    return jsonify({
+        'success': False,
+        'error': 'Internal server error',
+        'timestamp': datetime.now().isoformat()
+    }), 500
+
+if __name__ == '__main__':
+    # Validate configuration before starting
+    if not Config.validate_config():
+        logger.warning("⚠️ Configuration validation failed - some features may not work")
+    
+    # Start the application
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    
+    logger.info(f"🚀 Starting Brisbane Property Intelligence API v2.1")
+    logger.info(f"📡 Port: {port}")
+    logger.info(f"🔧 Debug: {debug_mode}")
+    logger.info(f"🤖 Available LLM providers: {Config.get_enabled_llm_providers()}")
+    
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
