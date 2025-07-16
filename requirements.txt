@@ -16,7 +16,7 @@ scipy==1.11.2
 seaborn==0.12.2
 
 # LLM and AI Integration
-anthropic==0.34.0  # Updated from 0.25.0 to fix Claude API issues
+anthropic==0.28.1  # Stable version without httpx conflicts
 google-generativeai==0.3.2
 
 # Data Processing and RSS Feeds
