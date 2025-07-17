@@ -67,11 +67,14 @@ class Config:
     
     # Brisbane Property Questions
     PRESET_QUESTIONS = [
-        "What new development applications were submitted in Brisbane this month?",
-        "Which Brisbane suburbs are trending in property news?",
-        "Are there any major infrastructure projects affecting property values?",
-        "What zoning changes have been approved recently?",
-        "Which areas have the most development activity?"
+    "What are the current trends in the Australian property market?",
+    "Which Australian cities are showing the strongest property growth?", 
+    "What major infrastructure projects are affecting property values across Australia?",
+    "Which suburbs across Australia are trending in property investment?",
+    "What regulatory changes are impacting the Australian property market?",
+    "What are the latest property development approvals across major Australian cities?",
+    "Which Australian property markets offer the best investment opportunities?",
+    "What are the emerging property hotspots in Australia?"
     ]
     
     # RSS Data Sources

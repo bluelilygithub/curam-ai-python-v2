@@ -278,25 +278,25 @@ def debug_rss():
 
 @app.route('/')
 def index():
-    """Brisbane Property Intelligence API information"""
+    """Australian Property Intelligence API information"""
     return jsonify({
-        'name': 'Brisbane Property Intelligence API',
+        'name': 'Australian Property Intelligence API',  # Changed from Brisbane
         'version': '2.1.0',
         'status': 'running',
         'timestamp': datetime.now().isoformat(),
-        'description': 'Professional multi-LLM Brisbane property analysis system with real RSS data',
+        'description': 'Professional multi-LLM Australian property analysis system with real RSS data',  # Updated
         'features': [
             'Professional Multi-LLM Integration',
             'Claude & Gemini Support',
             'Real Australian Property RSS Feeds',
             'Database Storage & Analytics',
             'Query History Management',
-            'Brisbane Property Focus',
+            'Australian Property Market Focus',  # Changed from Brisbane
             'Comprehensive Health Monitoring',
             'Professional Error Handling'
         ],
         'services': services['health'].get_service_status() if services['health'] else {},
-        'preset_questions': Config.PRESET_QUESTIONS,
+        'preset_questions': Config.PRESET_QUESTIONS,  # Will use new national questions
         'api_endpoints': {
             'analyze': 'POST /api/property/analyze',
             'questions': 'GET /api/property/questions',
@@ -614,7 +614,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
-    logger.info(f"🚀 Starting Brisbane Property Intelligence API v2.1")
+    logger.info(f"🚀 Starting Australian Property Intelligence API v2.1")  # Changed from Brisbane
     logger.info(f"📡 Port: {port}")
     logger.info(f"🔧 Debug: {debug_mode}")
     logger.info(f"🤖 Available LLM providers: {Config.get_enabled_llm_providers()}")
