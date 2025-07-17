@@ -1,6 +1,7 @@
 """
 Professional LLM Service
 Handles Claude and Gemini integration with proper error handling
+UPDATED: Australian national scope with location intelligence
 """
 
 import os
@@ -12,7 +13,7 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 class LLMService:
-    """Professional LLM service with multiple providers"""
+    """Professional LLM service with multiple providers and location intelligence"""
     
     def __init__(self):
         self.claude_client = None
@@ -53,7 +54,7 @@ class LLMService:
             self.claude_client = None
     
     def _init_gemini(self):
-        """Initialize Gemini client with working models from your other project"""
+        """Initialize Gemini client with working models"""
         try:
             if not Config.GEMINI_API_KEY:
                 logger.warning("Gemini API key not configured")
@@ -114,7 +115,7 @@ class LLMService:
             return self._error_response("Claude client not available")
         
         try:
-            prompt = self._create_brisbane_prompt(question)
+            prompt = self._create_strategic_prompt(question)
             model = self.working_claude_model or Config.CLAUDE_MODELS[0]
             
             start_time = time.time()
@@ -143,7 +144,7 @@ class LLMService:
             return self._error_response("Gemini model not available")
         
         try:
-            prompt = self._create_gemini_prompt(question, claude_context)
+            prompt = self._create_comprehensive_prompt(question, claude_context)
             model = self.working_gemini_model or Config.GEMINI_MODELS[0]
             
             start_time = time.time()
@@ -162,40 +163,103 @@ class LLMService:
             logger.error(f"Gemini analysis failed: {e}")
             return self._error_response(f"Gemini analysis failed: {str(e)}")
     
-    def _create_brisbane_prompt(self, question: str) -> str:
-        """Create Brisbane-specific prompt for initial analysis"""
-        return f"""You are a Brisbane property research specialist. Analyze this question and provide insights:
+    def _detect_location_scope(self, question: str) -> Dict:
+        """Detect if question is location-specific or national"""
+        question_lower = question.lower()
+        
+        # Brisbane/Queensland specific keywords
+        brisbane_keywords = ['brisbane', 'queensland', 'qld', 'gold coast', 'sunshine coast']
+        
+        # Other major Australian cities
+        sydney_keywords = ['sydney', 'nsw', 'new south wales']
+        melbourne_keywords = ['melbourne', 'victoria', 'vic']
+        perth_keywords = ['perth', 'western australia', 'wa']
+        adelaide_keywords = ['adelaide', 'south australia', 'sa']
+        
+        # Check for specific locations
+        if any(keyword in question_lower for keyword in brisbane_keywords):
+            return {'scope': 'brisbane', 'focus': 'Brisbane and Queensland'}
+        elif any(keyword in question_lower for keyword in sydney_keywords):
+            return {'scope': 'sydney', 'focus': 'Sydney and New South Wales'}
+        elif any(keyword in question_lower for keyword in melbourne_keywords):
+            return {'scope': 'melbourne', 'focus': 'Melbourne and Victoria'}
+        elif any(keyword in question_lower for keyword in perth_keywords):
+            return {'scope': 'perth', 'focus': 'Perth and Western Australia'}
+        elif any(keyword in question_lower for keyword in adelaide_keywords):
+            return {'scope': 'adelaide', 'focus': 'Adelaide and South Australia'}
+        else:
+            return {'scope': 'national', 'focus': 'Australian national property market'}
+    
+    def _create_strategic_prompt(self, question: str) -> str:
+        """Create location-aware strategic prompt for Claude"""
+        location_info = self._detect_location_scope(question)
+        
+        if location_info['scope'] == 'national':
+            return f"""You are an Australian property research specialist with expertise across all major Australian markets. Analyze this question and provide strategic insights:
 
 Question: "{question}"
 
 Please provide:
-1. What type of property question this is (development, market, infrastructure, zoning, etc.)
-2. Which specific Brisbane suburbs/areas are most relevant
-3. What data sources would help answer this question
-4. Key insights to look for in the data
+1. What type of property question this is (development, market, infrastructure, regulatory, etc.)
+2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Brisbane, Perth, Adelaide)
+3. What data sources and market indicators would help answer this question
+4. Key insights to look for across Australian property markets
+5. How different markets might show varying trends or responses
 
-Keep your response concise and focused specifically on Brisbane, Queensland, Australia."""
-    
-    def _create_gemini_prompt(self, question: str, claude_context: str) -> str:
-        """Create Gemini prompt for comprehensive analysis"""
-        base_prompt = f"""You are a Brisbane property market analyst. Provide a comprehensive answer to this question:
+Keep your response strategic and focused on Australian property markets nationally, highlighting regional variations where relevant."""
+        
+        else:
+            return f"""You are an Australian property research specialist with deep expertise in {location_info['focus']} within the broader Australian market context. Analyze this question:
 
 Question: "{question}"
 
-Please provide a detailed Brisbane property market analysis that directly answers the question. Include:
-- Specific Brisbane suburbs and areas
-- Current market trends and data
-- Investment or development implications
-- Professional insights for property industry
+Please provide:
+1. What type of property question this is (development, market, infrastructure, regulatory, etc.)
+2. Which specific areas within {location_info['focus']} are most relevant
+3. How this relates to broader Australian property market trends
+4. What data sources would help answer this question
+5. Key insights to look for in the local and national context
 
-Focus on actionable information for Brisbane property professionals."""
+Keep your response strategic and focused on {location_info['focus']} while considering Australian market dynamics."""
+    
+    def _create_comprehensive_prompt(self, question: str, claude_context: str) -> str:
+        """Create location-aware comprehensive prompt for Gemini"""
+        location_info = self._detect_location_scope(question)
+        
+        if location_info['scope'] == 'national':
+            base_prompt = f"""You are an Australian property market analyst with comprehensive knowledge of all major Australian property markets. Provide a detailed analysis of this question:
+
+Question: "{question}"
+
+Please provide a comprehensive Australian property market analysis that:
+- Covers major Australian cities (Sydney, Melbourne, Brisbane, Perth, Adelaide) as relevant
+- Discusses current national market trends and regional variations
+- Includes investment and development implications across different markets
+- Provides professional insights for Australian property industry professionals
+- References current market conditions and data where applicable
+
+Focus on delivering actionable information for Australian property professionals with national market perspective."""
+        
+        else:
+            base_prompt = f"""You are an Australian property market analyst with specialized knowledge of {location_info['focus']} and its position within the Australian property market. Provide a comprehensive analysis:
+
+Question: "{question}"
+
+Please provide a detailed {location_info['focus']} property market analysis that:
+- Focuses specifically on {location_info['focus']} areas and suburbs
+- Connects local trends to broader Australian market dynamics
+- Includes investment and development implications for this region
+- Provides professional insights for property professionals in this market
+- References current market conditions and local data where applicable
+
+Focus on delivering actionable information for property professionals working in {location_info['focus']}."""
         
         if claude_context:
             return f"""{base_prompt}
 
-Initial Research Context: {claude_context}
+Strategic Research Context: {claude_context}
 
-Build upon this context to provide your comprehensive analysis."""
+Build upon this strategic context to provide your comprehensive analysis."""
         
         return base_prompt
     
