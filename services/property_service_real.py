@@ -61,10 +61,10 @@ class RealRSSService:
                 'frequency': 'Monthly updates',
                 'active': True
             },
-            'clark_realty_Austalian': {
+            'clark_realty_Australian': {
                 'url': 'https://clarkrealty.com.au/feed',
-                'name': 'Clark Real Estate Austalian',
-                'description': 'Austalian property market insights',
+                'name': 'Clark Real Estate Australian',
+                'description': 'Australian property market insights',
                 'frequency': 'Weekly updates',
                 'active': True
             },
@@ -93,7 +93,7 @@ class RealRSSService:
         
         # Request headers to avoid being blocked
         self.headers = {
-            'User-Agent': 'Austalian Property Intelligence API/2.1.0 (+https://curam-ai-python-v2-production.up.railway.app)',
+            'User-Agent': 'Australian Property Intelligence API/2.1.0 (+https://curam-ai-python-v2-production.up.railway.app)',
             'Accept': 'application/rss+xml, application/xml, text/xml',
             'Accept-Language': 'en-AU,en;q=0.9',
             'Cache-Control': 'no-cache'
@@ -235,24 +235,24 @@ class RealRSSService:
         all_entries.sort(key=parse_date, reverse=True)
         return all_entries[:max_items]
     
-    def get_Austalian_specific_news(self, max_items: int = 20) -> List[Dict]:
-        """Filter news for Austalian-specific content"""
+    def get_Australian_specific_news(self, max_items: int = 20) -> List[Dict]:
+        """Filter news for Australian-specific content"""
         all_news = self.get_recent_property_news(max_items=100)
-        Austalian_news = []
+        Australian_news = []
         
-        Austalian_keywords = [
-            'Austalian', 'queensland', 'qld', 'gold coast', 'sunshine coast',
+        Australian_keywords = [
+            'Australian', 'queensland', 'qld', 'gold coast', 'sunshine coast',
             'ipswich', 'logan', 'redland', 'moreton bay', 'caboolture',
             'toowoomba', 'cairns', 'townsville', 'rockhampton'
         ]
         
         for entry in all_news:
             text_to_search = f"{entry.get('title', '')} {entry.get('summary', '')}".lower()
-            if any(keyword in text_to_search for keyword in Austalian_keywords):
-                entry['Austalian_relevant'] = True
-                Austalian_news.append(entry)
+            if any(keyword in text_to_search for keyword in Australian_keywords):
+                entry['Australian_relevant'] = True
+                Australian_news.append(entry)
         
-        return Austalian_news[:max_items]
+        return Australian_news[:max_items]
     
     def get_feed_status(self) -> Dict:
         """Get status of all RSS feeds"""
@@ -326,9 +326,9 @@ def get_mock_rss_data():
     """Backward compatibility - now returns real RSS data"""
     return rss_service.get_recent_property_news(max_items=20)
 
-def get_Austalian_property_news():
-    """Get Austalian-specific property news"""
-    return rss_service.get_Austalian_specific_news(max_items=15)
+def get_Australian_property_news():
+    """Get Australian-specific property news"""
+    return rss_service.get_Australian_specific_news(max_items=15)
 
 def get_all_property_sources():
     """Get data from all property RSS sources"""
@@ -343,17 +343,17 @@ if __name__ == "__main__":
     
     # Test single feed
     print("\n1. Testing single feed fetch:")
-    feed_data = rss_service.fetch_feed('clark_realty_Austalian')
+    feed_data = rss_service.fetch_feed('clark_realty_Australian')
     if feed_data:
         print(f"✅ {feed_data['name']}: {feed_data['entries_count']} entries")
     else:
         print("❌ Failed to fetch feed")
     
-    # Test Austalian-specific news
-    print("\n2. Testing Austalian-specific news:")
-    Austalian_news = rss_service.get_Austalian_specific_news(max_items=5)
-    print(f"✅ Found {len(Austalian_news)} Austalian-relevant articles")
-    for article in Austalian_news[:3]:
+    # Test Australian-specific news
+    print("\n2. Testing Australian-specific news:")
+    Australian_news = rss_service.get_Australian_specific_news(max_items=5)
+    print(f"✅ Found {len(Australian_news)} Australian-relevant articles")
+    for article in Australian_news[:3]:
         print(f"   • {article['title'][:60]}...")
     
     # Test feed status

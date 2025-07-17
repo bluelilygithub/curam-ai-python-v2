@@ -1,5 +1,5 @@
-"""
-Utilities package for Austalian Property Intelligence
+y"""
+Utilities package for Australian Property Intelligence
 """
 
 from .health_checker import HealthChecker

@@ -1,14 +1,14 @@
 /**
- * Austalian Property Intelligence - Main Application
+ * Australian Property Intelligence - Main Application
  * 
- * Professional frontend application for Austalian property analysis
+ * Professional frontend application for Australian property analysis
  * using AI-powered multi-LLM backend services.
  * 
  * @version 2.0.0
  * @author Property Intelligence Team
  */
 
-class AustalianPropertyApp {
+class AustralianPropertyApp {
     constructor() {
         this.currentQuestion = '';
         this.presetQuestions = [];
@@ -147,8 +147,8 @@ class AustalianPropertyApp {
             
             // Use fallback questions
             this.presetQuestions = [
-                "What new development applications were submitted in Austalian this month?",
-                "Which Austalian suburbs are trending in property news?", 
+                "What new development applications were submitted in Australian this month?",
+                "Which Australian suburbs are trending in property news?", 
                 "Are there any major infrastructure projects affecting property values?",
                 "What zoning changes have been approved recently?",
                 "Which areas have the most development activity?"
@@ -366,8 +366,8 @@ class AustalianPropertyApp {
             <div class="loading">
                 <div class="spinner"></div>
                 <div class="loading-text">
-                    <h4>Analyzing Your Austalian Property Question</h4>
-                    <p>Our AI is processing your request using Austalian-specific data...</p>
+                    <h4>Analyzing Your Australian Property Question</h4>
+                    <p>Our AI is processing your request using Australian-specific data...</p>
                 </div>
             </div>
         `;
@@ -737,8 +737,8 @@ class AustalianPropertyApp {
 // Initialize application when DOM is ready
 let app;
 document.addEventListener('DOMContentLoaded', function() {
-    app = new AustalianPropertyApp();
+    app = new AustralianPropertyApp();
 });
 
 // Export for global access
-window.AustalianPropertyApp = AustalianPropertyApp;
+window.AustralianPropertyApp = AustralianPropertyApp;

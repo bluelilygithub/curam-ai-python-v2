@@ -1,5 +1,5 @@
 /**
- * Austalian Property Intelligence - Frontend Configuration
+ * Australian Property Intelligence - Frontend Configuration
  * 
  * Environment-specific configuration for the frontend application.
  * Update these settings based on your deployment environment.
@@ -80,7 +80,7 @@ const APP_CONFIG = {
     
     // Application Information
     app: {
-        name: 'Austalian Property Intelligence',
+        name: 'Australian Property Intelligence',
         version: '2.0.0',
         description: 'AI-Powered Property Market Analysis for Queensland',
         author: 'Property Intelligence Team',
@@ -117,7 +117,7 @@ const APP_CONFIG = {
         },
         
         staging: {
-            apiUrl: 'https://staging-Austalian-property.up.railway.app',
+            apiUrl: 'https://staging-Australian-property.up.railway.app',
             debug: true,
             mockData: false,
             showConsoleInfo: true,
@@ -174,7 +174,7 @@ const APP_CONFIG = {
         
         // User-friendly error messages
         messages: {
-            networkError: 'Unable to connect to Austalian Property Intelligence. Please check your internet connection.',
+            networkError: 'Unable to connect to Australian Property Intelligence. Please check your internet connection.',
             serverError: 'Our servers are experiencing issues. Please try again in a moment.',
             timeoutError: 'The request took too long. Please try again.',
             parseError: 'Unable to process the response. Please try again.',
@@ -182,15 +182,15 @@ const APP_CONFIG = {
         }
     },
     
-    // Austalian-specific configuration
-    Austalian: {
-        timezone: 'Australia/Austalian',
+    // Australian-specific configuration
+    Australian: {
+        timezone: 'Australia/Australian',
         currency: 'AUD',
         locale: 'en-AU',
         
         // Default areas of interest
         defaultSuburbs: [
-            'South Austalian',
+            'South Australian',
             'Fortitude Valley', 
             'New Farm',
             'Paddington',
@@ -305,7 +305,7 @@ function isFeatureEnabled(feature) {
 function debugLog(...args) {
     if (isDebugMode()) {
         const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] [Austalian Property Intelligence]`, ...args);
+        console.log(`[${timestamp}] [Australian Property Intelligence]`, ...args);
     }
 }
 

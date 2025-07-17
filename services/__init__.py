@@ -1,5 +1,5 @@
 """
-Services package for Austalian Property Intelligence
+Services package for Australian Property Intelligence
 """
 
 from .llm_service import LLMService

@@ -1,6 +1,6 @@
 """
 Stability AI Service for Property Visualizations
-Generate charts, infographics, and visual content for Austalian property analysis
+Generate charts, infographics, and visual content for Australian property analysis
 """
 
 import requests
@@ -163,7 +163,7 @@ class StabilityService:
             'area': 'filled area chart'
         }.get(chart_type, 'professional bar chart')
         
-        return f"""Create a {chart_description} showing Austalian property market data. 
+        return f"""Create a {chart_description} showing Australian property market data. 
         Professional business style with clean design, modern colors (blues and greens), 
         clear labels and grid lines. Data represents: {data.get('title', 'Property Market Analysis')}. 
         Include title, axis labels, and professional formatting suitable for property reports. 
@@ -171,17 +171,17 @@ class StabilityService:
     
     def _create_infographic_prompt(self, suburb_data: Dict) -> str:
         """Create prompt for suburb infographic"""
-        suburb_name = suburb_data.get('name', 'Austalian Suburb')
+        suburb_name = suburb_data.get('name', 'Australian Suburb')
         
-        return f"""Create a professional property infographic for {suburb_name}, Austalian. 
-        Modern design with Austalian city colors (blue, green, gold). Include sections for: 
+        return f"""Create a professional property infographic for {suburb_name}, Australian. 
+        Modern design with Australian city colors (blue, green, gold). Include sections for: 
         property prices, development activity, infrastructure, and key statistics. 
         Clean layout with icons, charts, and professional typography. 
         Style: real estate marketing, professional, informative, modern Australian design."""
     
     def _create_trend_prompt(self, trend_data: List[Dict]) -> str:
         """Create prompt for trend visualization"""
-        return f"""Create a professional trend analysis visualization for Austalian property market. 
+        return f"""Create a professional trend analysis visualization for Australian property market. 
         Show market trends with directional arrows, percentage changes, and time series data. 
         Modern business style with professional color scheme (blues, greens, grays). 
         Include trend lines, data points, and clear indicators for growth/decline. 

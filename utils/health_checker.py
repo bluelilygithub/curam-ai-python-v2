@@ -1,5 +1,5 @@
 """
-Health Checker for Austalian Property Intelligence
+Health Checker for Australian Property Intelligence
 Professional health monitoring for all services
 """
 

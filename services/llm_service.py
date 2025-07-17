@@ -1,7 +1,7 @@
 """
 Professional LLM Service
 Handles Claude and Gemini integration with proper error handling
-UPDATED: Australian national scope with location intelligence
+UPDATED: Australian national scope with location intelligence + DEBUG LOGGING
 """
 
 import os
@@ -116,6 +116,10 @@ class LLMService:
         
         try:
             prompt = self._create_strategic_prompt(question)
+            
+            # ADD DEBUG LOGGING
+            logger.info(f"CLAUDE PROMPT BEING SENT: {prompt}")
+            
             model = self.working_claude_model or Config.CLAUDE_MODELS[0]
             
             start_time = time.time()
@@ -145,6 +149,10 @@ class LLMService:
         
         try:
             prompt = self._create_comprehensive_prompt(question, claude_context)
+            
+            # ADD DEBUG LOGGING
+            logger.info(f"GEMINI PROMPT BEING SENT: {prompt}")
+            
             model = self.working_gemini_model or Config.GEMINI_MODELS[0]
             
             start_time = time.time()
@@ -167,8 +175,11 @@ class LLMService:
         """Detect if question is location-specific or national"""
         question_lower = question.lower()
         
-        # Austalian/Queensland specific keywords
-        Austalian_keywords = ['Austalian', 'queensland', 'qld', 'gold coast', 'sunshine coast']
+        # ADD DEBUG LOGGING
+        logger.info(f"LOCATION DETECTION: Question='{question}', Lowercase='{question_lower}'")
+        
+        # Australian/Queensland specific keywords
+        Australian_keywords = ['Australian', 'queensland', 'qld', 'gold coast', 'sunshine coast']
         
         # Other major Australian cities
         sydney_keywords = ['sydney', 'nsw', 'new south wales']
@@ -177,18 +188,30 @@ class LLMService:
         adelaide_keywords = ['adelaide', 'south australia', 'sa']
         
         # Check for specific locations
-        if any(keyword in question_lower for keyword in Austalian_keywords):
-            return {'scope': 'Austalian', 'focus': 'Austalian and Queensland'}
+        if any(keyword in question_lower for keyword in Australian_keywords):
+            result = {'scope': 'Australian', 'focus': 'Australian and Queensland'}
+            logger.info(f"LOCATION DETECTION RESULT: {result}")
+            return result
         elif any(keyword in question_lower for keyword in sydney_keywords):
-            return {'scope': 'sydney', 'focus': 'Sydney and New South Wales'}
+            result = {'scope': 'sydney', 'focus': 'Sydney and New South Wales'}
+            logger.info(f"LOCATION DETECTION RESULT: {result}")
+            return result
         elif any(keyword in question_lower for keyword in melbourne_keywords):
-            return {'scope': 'melbourne', 'focus': 'Melbourne and Victoria'}
+            result = {'scope': 'melbourne', 'focus': 'Melbourne and Victoria'}
+            logger.info(f"LOCATION DETECTION RESULT: {result}")
+            return result
         elif any(keyword in question_lower for keyword in perth_keywords):
-            return {'scope': 'perth', 'focus': 'Perth and Western Australia'}
+            result = {'scope': 'perth', 'focus': 'Perth and Western Australia'}
+            logger.info(f"LOCATION DETECTION RESULT: {result}")
+            return result
         elif any(keyword in question_lower for keyword in adelaide_keywords):
-            return {'scope': 'adelaide', 'focus': 'Adelaide and South Australia'}
+            result = {'scope': 'adelaide', 'focus': 'Adelaide and South Australia'}
+            logger.info(f"LOCATION DETECTION RESULT: {result}")
+            return result
         else:
-            return {'scope': 'national', 'focus': 'Australian national property market'}
+            result = {'scope': 'national', 'focus': 'Australian national property market'}
+            logger.info(f"LOCATION DETECTION RESULT: {result}")
+            return result
     
     def _create_strategic_prompt(self, question: str) -> str:
         """Create location-aware strategic prompt for Claude"""
@@ -201,7 +224,7 @@ Question: "{question}"
 
 Please provide:
 1. What type of property question this is (development, market, infrastructure, regulatory, etc.)
-2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Austalian, Perth, Adelaide)
+2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Australian, Perth, Adelaide)
 3. What data sources and market indicators would help answer this question
 4. Key insights to look for across Australian property markets
 5. How different markets might show varying trends or responses
@@ -232,7 +255,7 @@ Keep your response strategic and focused on {location_info['focus']} while consi
 Question: "{question}"
 
 Please provide a comprehensive Australian property market analysis that:
-- Covers major Australian cities (Sydney, Melbourne, Austalian, Perth, Adelaide) as relevant
+- Covers major Australian cities (Sydney, Melbourne, Australian, Perth, Adelaide) as relevant
 - Discusses current national market trends and regional variations
 - Includes investment and development implications across different markets
 - Provides professional insights for Australian property industry professionals
