@@ -1119,3 +1119,170 @@ body {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+
+/* LLM Dashboard Styling */
+.llm-dashboard-container {
+    background: #ffffff;
+    border: 1px solid #e0e7ff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+}
+
+.dashboard-title {
+    color: #4f46e5;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #e0e7ff;
+    padding-bottom: 8px;
+}
+
+.dashboard-icon {
+    margin-right: 8px;
+}
+
+/* Current Processing Status */
+.current-processing {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.current-processing h4 {
+    color: #059669;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.status-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.status-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.status-value {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* Chart Containers */
+.chart-container {
+    margin-bottom: 20px;
+    background: #fafafa;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.chart-container h4 {
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+    height: auto !important;
+    border-radius: 4px;
+}
+
+/* System Status */
+.system-status {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.system-status h4 {
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* Processing Indicators */
+.processing {
+    color: #f59e0b !important;
+}
+
+.success {
+    color: #059669 !important;
+}
+
+.error {
+    color: #dc2626 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .llm-dashboard-container {
+        padding: 12px;
+        margin-top: 12px;
+    }
+    
+    .chart-container canvas {
+        height: 120px !important;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}
+
+/* Animation for updating metrics */
+.metric-value.updating {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}

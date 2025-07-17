@@ -54,6 +54,77 @@
                 <button class="analyze-btn" id="analyzeBtn">
                     🔍 Analyze Property Question
                 </button>
+
+
+<div id="llm-dashboard" class="llm-dashboard-container">
+    <h3 class="dashboard-title">
+        <span class="dashboard-icon">📊</span>
+        LLM Performance Dashboard
+    </h3>
+    
+    <!-- Current Processing Status -->
+    <div class="current-processing">
+        <h4>⚡ Current Processing</h4>
+        <div id="current-status" class="status-indicators">
+            <div class="status-item">
+                <span class="status-label">Location:</span>
+                <span id="current-location" class="status-value">Detecting...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">RSS Sources:</span>
+                <span id="current-rss" class="status-value">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">LLM Status:</span>
+                <span id="current-llm" class="status-value">Ready</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Response Times Chart -->
+    <div class="chart-container">
+        <h4>⏱️ Response Times (Last 10 Queries)</h4>
+        <canvas id="responseTimesChart" width="300" height="150"></canvas>
+    </div>
+    
+    <!-- Provider Performance -->
+    <div class="chart-container">
+        <h4>🤖 LLM Provider Performance</h4>
+        <canvas id="providerPerformanceChart" width="300" height="150"></canvas>
+    </div>
+    
+    <!-- Location Distribution -->
+    <div class="chart-container">
+        <h4>🗺️ Query Distribution</h4>
+        <canvas id="locationDistributionChart" width="300" height="200"></canvas>
+    </div>
+    
+    <!-- System Status -->
+    <div class="system-status">
+        <h4>📡 System Status</h4>
+        <div id="system-metrics" class="metrics-grid">
+            <div class="metric">
+                <span class="metric-label">Success Rate:</span>
+                <span id="success-rate" class="metric-value">---%</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Avg Response:</span>
+                <span id="avg-response" class="metric-value">---s</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">RSS Feeds:</span>
+                <span id="rss-status" class="metric-value">---</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Total Queries:</span>
+                <span id="total-queries" class="metric-value">---</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
             </div>
 
             <div class="card">
@@ -110,5 +181,6 @@
 
     <!-- Main App -->
     <script src="assets/js/app-main.js"></script>
+    <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

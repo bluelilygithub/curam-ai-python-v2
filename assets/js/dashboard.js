@@ -1,139 +1,401 @@
-// Load system status on page load
-window.addEventListener('load', function() {
-    loadSystemStatus();
-});
-
-async function loadSystemStatus() {
-    try {
-        // Use relative path for subdirectory deployment
-        const response = await fetch('../health');
-        const data = await response.json();
+// LLM Dashboard JavaScript with Chart.js
+class LLMDashboard {
+    constructor() {
+        this.charts = {};
+        this.updateInterval = null;
+        this.isProcessing = false;
         
-        // Update system status
-        document.getElementById('system-status').innerHTML = `
-            <div><span class="status-indicator status-ok"></span>Status: ${data.status}</div>
-            <div>Python: ${data.python_version}</div>
-            <div>Flask: ${data.flask_version}</div>
-        `;
-        
-        // Update API status
-        const apiStatus = data.environment_variables;
-        document.getElementById('api-status').innerHTML = Object.entries(apiStatus)
-            .map(([key, value]) => `
-                <div>
-                    <span class="status-indicator ${value === 'Set' ? 'status-ok' : 'status-error'}"></span>
-                    ${key}: ${value}
-                </div>
-            `).join('');
-        
-        // Update library status
-        const libStatus = data.library_availability;
-        document.getElementById('library-status').innerHTML = Object.entries(libStatus)
-            .map(([key, value]) => `
-                <div>
-                    <span class="status-indicator ${value ? 'status-ok' : 'status-error'}"></span>
-                    ${key}: ${value ? 'Available' : 'Missing'}
-                </div>
-            `).join('');
-        
-        // Update client status
-        const clientStatus = data.client_status;
-        document.getElementById('client-status').innerHTML = Object.entries(clientStatus)
-            .map(([key, value]) => `
-                <div>
-                    <span class="status-indicator ${value ? 'status-ok' : 'status-error'}"></span>
-                    ${key}: ${value ? 'Ready' : 'Not Initialized'}
-                </div>
-            `).join('');
-            
-    } catch (error) {
-        document.getElementById('system-status').innerHTML = 
-            `<div class="error">Error loading status: ${error.message}</div>`;
+        // Initialize dashboard when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
-}
-
-async function testLLM(service) {
-    const responseArea = document.getElementById('test-response');
-    const message = document.getElementById('test-message').value;
     
-    responseArea.style.display = 'block';
-    responseArea.innerHTML = `<div class="loading">Testing ${service}...</div>`;
+    init() {
+        console.log('🚀 Initializing LLM Dashboard...');
+        this.setupCharts();
+        this.loadInitialData();
+        this.startAutoUpdate();
+        
+        // Hook into existing search function to show real-time processing
+        this.hookIntoSearchFunction();
+    }
     
-    try {
-        const response = await fetch(`../api/test-${service}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: message })
+    setupCharts() {
+        // Response Times Line Chart
+        this.charts.responseTimes = new Chart(
+            document.getElementById('responseTimesChart').getContext('2d'),
+            {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Response Time (seconds)',
+                        data: [],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Seconds'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Recent Queries'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        );
+        
+        // Provider Performance Bar Chart
+        this.charts.providerPerformance = new Chart(
+            document.getElementById('providerPerformanceChart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: ['Claude', 'Gemini'],
+                    datasets: [
+                        {
+                            label: 'Avg Response Time (s)',
+                            data: [0, 0],
+                            backgroundColor: ['#059669', '#dc2626'],
+                            borderColor: ['#047857', '#b91c1c'],
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Success Rate (%)',
+                            data: [100, 100],
+                            backgroundColor: ['rgba(5, 150, 105, 0.3)', 'rgba(220, 38, 38, 0.3)'],
+                            borderColor: ['#047857', '#b91c1c'],
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Response Time (s)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Success Rate (%)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            }
+        );
+        
+        // Location Distribution Pie Chart
+        this.charts.locationDistribution = new Chart(
+            document.getElementById('locationDistributionChart').getContext('2d'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#4f46e5',  // National - Blue
+                            '#059669',  // Brisbane - Green
+                            '#dc2626',  // Sydney - Red
+                            '#f59e0b',  // Melbourne - Yellow
+                            '#7c3aed',  // Perth - Purple
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        
+        console.log('✅ Charts initialized successfully');
+    }
+    
+    async loadInitialData() {
+        try {
+            console.log('📊 Loading initial dashboard data...');
+            const response = await fetch('/api/property/stats');
+            const data = await response.json();
+            
+            if (data.success && data.stats.llm_performance) {
+                this.updateDashboard(data.stats);
+                console.log('✅ Initial data loaded');
+            } else {
+                console.warn('⚠️ No LLM performance data available');
+                this.showNoDataState();
+            }
+        } catch (error) {
+            console.error('❌ Failed to load initial data:', error);
+            this.showErrorState();
+        }
+    }
+    
+    updateDashboard(stats) {
+        const llmPerf = stats.llm_performance;
+        
+        // Update Response Times Chart
+        if (llmPerf.response_times && llmPerf.response_times.length > 0) {
+            const labels = llmPerf.response_times.map((_, index) => `Q${index + 1}`);
+            const times = llmPerf.response_times.map(q => q.processing_time);
+            
+            this.charts.responseTimes.data.labels = labels;
+            this.charts.responseTimes.data.datasets[0].data = times;
+            this.charts.responseTimes.update('none');
+        }
+        
+        // Update Provider Performance Chart
+        if (llmPerf.provider_performance) {
+            const claude = llmPerf.provider_performance.claude;
+            const gemini = llmPerf.provider_performance.gemini;
+            
+            this.charts.providerPerformance.data.datasets[0].data = [
+                claude.avg_response_time || 0,
+                gemini.avg_response_time || 0
+            ];
+            this.charts.providerPerformance.data.datasets[1].data = [
+                claude.success_rate || 100,
+                gemini.success_rate || 100
+            ];
+            this.charts.providerPerformance.update('none');
+        }
+        
+        // Update Location Distribution Chart
+        if (llmPerf.location_breakdown) {
+            const locations = Object.keys(llmPerf.location_breakdown);
+            const counts = Object.values(llmPerf.location_breakdown);
+            
+            this.charts.locationDistribution.data.labels = locations;
+            this.charts.locationDistribution.data.datasets[0].data = counts;
+            this.charts.locationDistribution.update('none');
+        }
+        
+        // Update System Metrics
+        this.updateSystemMetrics(stats);
+    }
+    
+    updateSystemMetrics(stats) {
+        const llmPerf = stats.llm_performance;
+        const rssStatus = stats.rss_status;
+        
+        // Success Rate
+        const successRateEl = document.getElementById('success-rate');
+        if (successRateEl && llmPerf.success_rates) {
+            successRateEl.textContent = `${llmPerf.success_rates.overall}%`;
+            successRateEl.className = llmPerf.success_rates.overall >= 90 ? 'metric-value success' : 'metric-value';
+        }
+        
+        // Average Response Time
+        const avgResponseEl = document.getElementById('avg-response');
+        if (avgResponseEl && llmPerf.provider_performance) {
+            const claude = llmPerf.provider_performance.claude.avg_response_time || 0;
+            const gemini = llmPerf.provider_performance.gemini.avg_response_time || 0;
+            const avg = ((claude + gemini) / 2).toFixed(1);
+            avgResponseEl.textContent = `${avg}s`;
+        }
+        
+        // RSS Status
+        const rssStatusEl = document.getElementById('rss-status');
+        if (rssStatusEl && rssStatus) {
+            rssStatusEl.textContent = `${rssStatus.active_feeds}/${rssStatus.total_feeds}`;
+            rssStatusEl.className = rssStatus.active_feeds >= rssStatus.total_feeds ? 'metric-value success' : 'metric-value';
+        }
+        
+        // Total Queries
+        const totalQueriesEl = document.getElementById('total-queries');
+        if (totalQueriesEl && llmPerf.total_queries_analyzed) {
+            totalQueriesEl.textContent = llmPerf.total_queries_analyzed;
+        }
+    }
+    
+    showProcessingState(question) {
+        this.isProcessing = true;
+        
+        // Update current status
+        const locationEl = document.getElementById('current-location');
+        const rssEl = document.getElementById('current-rss');
+        const llmEl = document.getElementById('current-llm');
+        
+        if (locationEl) {
+            locationEl.textContent = 'Analyzing...';
+            locationEl.className = 'status-value processing';
+        }
+        
+        if (rssEl) {
+            rssEl.textContent = 'Fetching...';
+            rssEl.className = 'status-value processing';
+        }
+        
+        if (llmEl) {
+            llmEl.textContent = 'Processing...';
+            llmEl.className = 'status-value processing';
+        }
+        
+        // Add pulse animation to metrics
+        document.querySelectorAll('.metric-value').forEach(el => {
+            el.classList.add('updating');
+        });
+    }
+    
+    showCompletedState(result) {
+        this.isProcessing = false;
+        
+        // Update current status
+        const locationEl = document.getElementById('current-location');
+        const rssEl = document.getElementById('current-rss');
+        const llmEl = document.getElementById('current-llm');
+        
+        if (locationEl && result.processing_stages) {
+            const location = result.processing_stages.location_detected || 'National';
+            locationEl.textContent = location;
+            locationEl.className = 'status-value success';
+        }
+        
+        if (rssEl && result.processing_stages) {
+            const sources = result.processing_stages.rss_data_sources || 0;
+            rssEl.textContent = `${sources} sources`;
+            rssEl.className = 'status-value success';
+        }
+        
+        if (llmEl && result.processing_time) {
+            llmEl.textContent = `${result.processing_time}s`;
+            llmEl.className = 'status-value success';
+        }
+        
+        // Remove pulse animation
+        document.querySelectorAll('.metric-value').forEach(el => {
+            el.classList.remove('updating');
         });
         
-        const data = await response.json();
-        
-        if (data.success) {
-            responseArea.innerHTML = `
-                <div class="success">✅ ${data.service} Test Successful</div>
-                <div><strong>Response:</strong></div>
-                <div>${escapeHtml(data.response)}</div>
-                <div><small>Timestamp: ${data.timestamp}</small></div>
-            `;
-        } else {
-            responseArea.innerHTML = `
-                <div class="error">❌ ${data.service || service} Test Failed</div>
-                <div><strong>Error:</strong> ${escapeHtml(data.error)}</div>
-                ${data.details ? `<div><strong>Details:</strong> ${escapeHtml(data.details)}</div>` : ''}
-            `;
+        // Refresh dashboard data
+        setTimeout(() => this.loadInitialData(), 1000);
+    }
+    
+    hookIntoSearchFunction() {
+        // Hook into the existing analyzePropertyQuestion function
+        const originalAnalyze = window.analyzePropertyQuestion;
+        if (originalAnalyze) {
+            window.analyzePropertyQuestion = async (question) => {
+                console.log('🔍 Dashboard tracking query:', question);
+                this.showProcessingState(question);
+                
+                try {
+                    const result = await originalAnalyze(question);
+                    this.showCompletedState(result);
+                    return result;
+                } catch (error) {
+                    this.showErrorState();
+                    throw error;
+                }
+            };
         }
-    } catch (error) {
-        responseArea.innerHTML = `
-            <div class="error">❌ Network Error</div>
-            <div><strong>Error:</strong> ${escapeHtml(error.message)}</div>
-        `;
+    }
+    
+    showNoDataState() {
+        // Show placeholder when no data available
+        document.querySelectorAll('.metric-value').forEach(el => {
+            if (el.textContent === '---' || el.textContent === '---s' || el.textContent === '---%') {
+                el.textContent = 'No data';
+                el.className = 'metric-value';
+            }
+        });
+    }
+    
+    showErrorState() {
+        document.querySelectorAll('.metric-value').forEach(el => {
+            el.classList.remove('updating', 'processing');
+            el.classList.add('error');
+        });
+        
+        const llmEl = document.getElementById('current-llm');
+        if (llmEl) {
+            llmEl.textContent = 'Error';
+            llmEl.className = 'status-value error';
+        }
+    }
+    
+    startAutoUpdate() {
+        // Update dashboard every 30 seconds
+        this.updateInterval = setInterval(() => {
+            if (!this.isProcessing) {
+                this.loadInitialData();
+            }
+        }, 30000);
+    }
+    
+    destroy() {
+        // Cleanup method
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        Object.values(this.charts).forEach(chart => {
+            if (chart) chart.destroy();
+        });
     }
 }
 
-async function testFeeds() {
-    const responseArea = document.getElementById('test-response');
-    
-    responseArea.style.display = 'block';
-    responseArea.innerHTML = `<div class="loading">Testing RSS feeds...</div>`;
-    
-    try {
-        const response = await fetch('../api/test-feeds');
-        const data = await response.json();
-        
-        if (data.success) {
-            responseArea.innerHTML = `
-                <div class="success">✅ RSS Feed Test Successful</div>
-                <div><strong>Feed:</strong> ${escapeHtml(data.feed_title)}</div>
-                <div><strong>Entries found:</strong> ${data.entries_count}</div>
-                <div><strong>Sample entries:</strong></div>
-                ${data.sample_entries.map(entry => `
-                    <div class="feed-entry">
-                        <strong>${escapeHtml(entry.title)}</strong>
-                        <small>${escapeHtml(entry.published)}</small>
-                    </div>
-                `).join('')}
-                <div><small>Timestamp: ${data.timestamp}</small></div>
-            `;
-        } else {
-            responseArea.innerHTML = `
-                <div class="error">❌ RSS Feed Test Failed</div>
-                <div><strong>Error:</strong> ${escapeHtml(data.error)}</div>
-                ${data.details ? `<div><strong>Details:</strong> ${escapeHtml(data.details)}</div>` : ''}
-            `;
-        }
-    } catch (error) {
-        responseArea.innerHTML = `
-            <div class="error">❌ Network Error</div>
-            <div><strong>Error:</strong> ${escapeHtml(error.message)}</div>
-        `;
-    }
-}
+// Initialize dashboard when script loads
+window.llmDashboard = new LLMDashboard();
 
-// Utility function to escape HTML and prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// Export for external use
+window.LLMDashboard = LLMDashboard;
