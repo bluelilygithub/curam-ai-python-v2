@@ -1,5 +1,5 @@
 """
-Brisbane Property Intelligence API
+Australian Property Intelligence API
 Professional Flask application with clean architecture
 """
 
@@ -26,8 +26,6 @@ app = Flask(__name__)
 # Configure CORS
 CORS(app, origins=Config.CORS_ORIGINS)
 
-# Update your initialize_services() function in app.py:
-
 def initialize_services():
     """Initialize all services with proper error handling"""
     services = {}
@@ -51,7 +49,7 @@ def initialize_services():
         logger.error(f"❌ LLM service initialization failed: {e}")
         services['llm'] = None
     
-    # RSS Service for Australian Property Data (MOVE THIS UP)
+    # RSS Service for Australian Property Data
     try:
         from services.rss_service import RSSService
         services['rss'] = RSSService()
@@ -60,10 +58,10 @@ def initialize_services():
         logger.error(f"❌ RSS service initialization failed: {e}")
         services['rss'] = None
     
-    # Property Analysis Service (UPDATED - now receives RSS service)
+    # Property Analysis Service (receives RSS service)
     if services['llm']:
         try:
-            services['property'] = PropertyAnalysisService(services['llm'], services['rss'])  # Pass RSS service
+            services['property'] = PropertyAnalysisService(services['llm'], services['rss'])
             logger.info("✅ Property analysis service initialized")
         except Exception as e:
             logger.error(f"❌ Property service initialization failed: {e}")
@@ -172,15 +170,27 @@ def debug_services():
             health_status = llm_service.get_health_status()
             debug_info.append(f"Health status: {health_status}")
         
-        # Test Property Service
+        # Test RSS Service
+        debug_info.append("\nTesting RSS Service...")
+        rss_service = services.get('rss')
+        debug_info.append(f"RSS Service available: {rss_service is not None}")
+        
+        # Test Property Service (FIXED - now with RSS service parameter)
         debug_info.append("\nTesting Property Service...")
         from services import PropertyAnalysisService
         
         if llm_service:
-            property_service = PropertyAnalysisService(llm_service)
+            # Pass RSS service as second parameter (can be None)
+            property_service = PropertyAnalysisService(llm_service, rss_service)
             debug_info.append(f"Property Service created: {property_service is not None}")
+            debug_info.append(f"Property Service has RSS: {property_service.rss_service is not None}")
         else:
             debug_info.append("Property Service: Cannot create without LLM service")
+        
+        # Test Production Services
+        debug_info.append("\nProduction Services Status:")
+        debug_info.append(f"Production Property Service: {services.get('property') is not None}")
+        debug_info.append(f"Production RSS Service: {services.get('rss') is not None}")
         
     except Exception as e:
         debug_info.append(f"ERROR: {type(e).__name__}: {str(e)}")
@@ -282,23 +292,23 @@ def debug_rss():
 def index():
     """Australian Property Intelligence API information"""
     return jsonify({
-        'name': 'Australian Property Intelligence API',  # Changed from Brisbane
+        'name': 'Australian Property Intelligence API',
         'version': '2.1.0',
         'status': 'running',
         'timestamp': datetime.now().isoformat(),
-        'description': 'Professional multi-LLM Australian property analysis system with real RSS data',  # Updated
+        'description': 'Professional multi-LLM Australian property analysis system with real RSS data',
         'features': [
             'Professional Multi-LLM Integration',
             'Claude & Gemini Support',
             'Real Australian Property RSS Feeds',
             'Database Storage & Analytics',
             'Query History Management',
-            'Australian Property Market Focus',  # Changed from Brisbane
+            'Australian Property Market Focus',
             'Comprehensive Health Monitoring',
             'Professional Error Handling'
         ],
         'services': services['health'].get_service_status() if services['health'] else {},
-        'preset_questions': Config.PRESET_QUESTIONS,  # Will use new national questions
+        'preset_questions': Config.PRESET_QUESTIONS,
         'api_endpoints': {
             'analyze': 'POST /api/property/analyze',
             'questions': 'GET /api/property/questions',
@@ -377,7 +387,7 @@ def get_property_questions():
 
 @app.route('/api/property/analyze', methods=['POST'])
 def analyze_property_question():
-    """Analyze Brisbane property question using professional pipeline"""
+    """Analyze Australian property question using professional pipeline"""
     try:
         data = request.get_json()
         if not data:
@@ -400,10 +410,10 @@ def analyze_property_question():
                 'details': 'LLM services may not be configured correctly'
             }), 500
         
-        logger.info(f"🔍 Processing property question: {question}")
+        logger.info(f"🔍 Processing Australian property question: {question}")
         start_time = time.time()
         
-        # Use professional property analysis service
+        # Use professional property analysis service with RSS integration
         result = services['property'].analyze_property_question(question)
         processing_time = time.time() - start_time
         
@@ -616,7 +626,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
-    logger.info(f"🚀 Starting Australian Property Intelligence API v2.1")  # Changed from Brisbane
+    logger.info(f"🚀 Starting Australian Property Intelligence API v2.1")
     logger.info(f"📡 Port: {port}")
     logger.info(f"🔧 Debug: {debug_mode}")
     logger.info(f"🤖 Available LLM providers: {Config.get_enabled_llm_providers()}")
