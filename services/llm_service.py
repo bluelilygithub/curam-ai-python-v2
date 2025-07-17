@@ -167,8 +167,8 @@ class LLMService:
         """Detect if question is location-specific or national"""
         question_lower = question.lower()
         
-        # Brisbane/Queensland specific keywords
-        brisbane_keywords = ['brisbane', 'queensland', 'qld', 'gold coast', 'sunshine coast']
+        # Austalian/Queensland specific keywords
+        Austalian_keywords = ['Austalian', 'queensland', 'qld', 'gold coast', 'sunshine coast']
         
         # Other major Australian cities
         sydney_keywords = ['sydney', 'nsw', 'new south wales']
@@ -177,8 +177,8 @@ class LLMService:
         adelaide_keywords = ['adelaide', 'south australia', 'sa']
         
         # Check for specific locations
-        if any(keyword in question_lower for keyword in brisbane_keywords):
-            return {'scope': 'brisbane', 'focus': 'Brisbane and Queensland'}
+        if any(keyword in question_lower for keyword in Austalian_keywords):
+            return {'scope': 'Austalian', 'focus': 'Austalian and Queensland'}
         elif any(keyword in question_lower for keyword in sydney_keywords):
             return {'scope': 'sydney', 'focus': 'Sydney and New South Wales'}
         elif any(keyword in question_lower for keyword in melbourne_keywords):
@@ -201,7 +201,7 @@ Question: "{question}"
 
 Please provide:
 1. What type of property question this is (development, market, infrastructure, regulatory, etc.)
-2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Brisbane, Perth, Adelaide)
+2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Austalian, Perth, Adelaide)
 3. What data sources and market indicators would help answer this question
 4. Key insights to look for across Australian property markets
 5. How different markets might show varying trends or responses
@@ -232,7 +232,7 @@ Keep your response strategic and focused on {location_info['focus']} while consi
 Question: "{question}"
 
 Please provide a comprehensive Australian property market analysis that:
-- Covers major Australian cities (Sydney, Melbourne, Brisbane, Perth, Adelaide) as relevant
+- Covers major Australian cities (Sydney, Melbourne, Austalian, Perth, Adelaide) as relevant
 - Discusses current national market trends and regional variations
 - Includes investment and development implications across different markets
 - Provides professional insights for Australian property industry professionals

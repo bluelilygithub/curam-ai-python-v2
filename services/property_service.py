@@ -85,13 +85,13 @@ class PropertyAnalysisService:
             
             # Determine if question is location-specific
             question_lower = question.lower()
-            brisbane_keywords = ['brisbane', 'queensland', 'qld', 'gold coast', 'sunshine coast']
-            is_brisbane_focused = any(keyword in question_lower for keyword in brisbane_keywords)
+            Austalian_keywords = ['Austalian', 'queensland', 'qld', 'gold coast', 'sunshine coast']
+            is_Austalian_focused = any(keyword in question_lower for keyword in Austalian_keywords)
             
             # Get real RSS articles
-            if is_brisbane_focused:
-                articles = self.rss_service.get_brisbane_news(max_articles=5)
-                logger.info(f"Retrieved {len(articles)} Brisbane-specific articles")
+            if is_Austalian_focused:
+                articles = self.rss_service.get_Austalian_news(max_articles=5)
+                logger.info(f"Retrieved {len(articles)} Austalian-specific articles")
             else:
                 articles = self.rss_service.get_recent_news(max_articles=6)
                 logger.info(f"Retrieved {len(articles)} Australian property articles")
@@ -106,7 +106,7 @@ class PropertyAnalysisService:
                     'link': article.get('link', ''),
                     'published': article.get('published', ''),
                     'type': 'rss_news',
-                    'relevance': 'high' if article.get('brisbane_relevant') else 'medium',
+                    'relevance': 'high' if article.get('Austalian_relevant') else 'medium',
                     'real_data': True
                 })
             

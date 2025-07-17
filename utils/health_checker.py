@@ -1,5 +1,5 @@
 """
-Health Checker for Brisbane Property Intelligence
+Health Checker for Austalian Property Intelligence
 Professional health monitoring for all services
 """
 

@@ -1,14 +1,14 @@
 /**
- * Brisbane Property Intelligence - Main Application
+ * Austalian Property Intelligence - Main Application
  * 
- * Professional frontend application for Brisbane property analysis
+ * Professional frontend application for Austalian property analysis
  * using AI-powered multi-LLM backend services.
  * 
  * @version 2.0.0
  * @author Property Intelligence Team
  */
 
-class BrisbanePropertyApp {
+class AustalianPropertyApp {
     constructor() {
         this.currentQuestion = '';
         this.presetQuestions = [];
@@ -24,7 +24,7 @@ class BrisbanePropertyApp {
      * Initialize the application
      */
     async init() {
-        debugLog('🚀 Brisbane Property Intelligence starting...');
+        debugLog('🚀 Australian Property Intelligence starting...');
         debugLog('🌐 Environment:', APP_CONFIG.environment.current);
         debugLog('🌐 API Base URL:', getApiBaseUrl());
         
@@ -147,8 +147,8 @@ class BrisbanePropertyApp {
             
             // Use fallback questions
             this.presetQuestions = [
-                "What new development applications were submitted in Brisbane this month?",
-                "Which Brisbane suburbs are trending in property news?", 
+                "What new development applications were submitted in Austalian this month?",
+                "Which Austalian suburbs are trending in property news?", 
                 "Are there any major infrastructure projects affecting property values?",
                 "What zoning changes have been approved recently?",
                 "Which areas have the most development activity?"
@@ -366,8 +366,8 @@ class BrisbanePropertyApp {
             <div class="loading">
                 <div class="spinner"></div>
                 <div class="loading-text">
-                    <h4>Analyzing Your Brisbane Property Question</h4>
-                    <p>Our AI is processing your request using Brisbane-specific data...</p>
+                    <h4>Analyzing Your Austalian Property Question</h4>
+                    <p>Our AI is processing your request using Austalian-specific data...</p>
                 </div>
             </div>
         `;
@@ -737,8 +737,8 @@ class BrisbanePropertyApp {
 // Initialize application when DOM is ready
 let app;
 document.addEventListener('DOMContentLoaded', function() {
-    app = new BrisbanePropertyApp();
+    app = new AustalianPropertyApp();
 });
 
 // Export for global access
-window.BrisbanePropertyApp = BrisbanePropertyApp;
+window.AustalianPropertyApp = AustalianPropertyApp;

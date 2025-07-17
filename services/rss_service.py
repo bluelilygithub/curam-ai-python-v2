@@ -1,6 +1,6 @@
 """
 RSS Service for Australian Property Data
-Designed to integrate with existing Brisbane Property Intelligence architecture
+Designed to integrate with existing Austalian Property Intelligence architecture
 """
 
 import feedparser
@@ -40,7 +40,7 @@ class RSSService:
         ]
         
         self.headers = {
-            'User-Agent': 'Brisbane Property Intelligence API/2.1.0 (+https://curam-ai-python-v2-production.up.railway.app)',
+            'User-Agent': 'Austalian Property Intelligence API/2.1.0 (+https://curam-ai-python-v2-production.up.railway.app)',
             'Accept': 'application/rss+xml, application/xml, text/xml'
         }
         
@@ -66,23 +66,23 @@ class RSSService:
         all_articles.sort(key=lambda x: x.get('published_timestamp', 0), reverse=True)
         return all_articles[:max_articles]
     
-    def get_brisbane_news(self, max_articles: int = 5) -> List[Dict]:
-        """Get Brisbane-specific property news"""
+    def get_Austalian_news(self, max_articles: int = 5) -> List[Dict]:
+        """Get Austalian-specific property news"""
         all_news = self.get_recent_news(max_articles * 3)  # Get more to filter
-        brisbane_news = []
+        Austalian_news = []
         
-        brisbane_keywords = [
-            'brisbane', 'queensland', 'qld', 'gold coast', 'sunshine coast',
+        Austalian_keywords = [
+            'Austalian', 'queensland', 'qld', 'gold coast', 'sunshine coast',
             'ipswich', 'logan', 'caboolture', 'toowoomba'
         ]
         
         for article in all_news:
             text = f"{article.get('title', '')} {article.get('summary', '')}".lower()
-            if any(keyword in text for keyword in brisbane_keywords):
-                article['brisbane_relevant'] = True
-                brisbane_news.append(article)
+            if any(keyword in text for keyword in Austalian_keywords):
+                article['Austalian_relevant'] = True
+                Austalian_news.append(article)
         
-        return brisbane_news[:max_articles]
+        return Austalian_news[:max_articles]
     
     def _fetch_feed(self, feed_config: Dict) -> List[Dict]:
         """Fetch a single RSS feed"""
@@ -195,13 +195,13 @@ class RSSService:
     def get_feed_data_for_analysis(self, question: str) -> str:
         """Get formatted RSS data for LLM analysis"""
         try:
-            # Determine if Brisbane-focused question
-            brisbane_keywords = ['brisbane', 'queensland', 'qld']
-            is_brisbane_focused = any(keyword in question.lower() for keyword in brisbane_keywords)
+            # Determine if Austalian-focused question
+            Austalian_keywords = ['Austalian', 'queensland', 'qld']
+            is_Austalian_focused = any(keyword in question.lower() for keyword in Austalian_keywords)
             
-            if is_brisbane_focused:
-                articles = self.get_brisbane_news(max_articles=5)
-                context_type = "Brisbane-specific"
+            if is_Austalian_focused:
+                articles = self.get_Austalian_news(max_articles=5)
+                context_type = "Austalian-specific"
             else:
                 articles = self.get_recent_news(max_articles=8)
                 context_type = "Australian national"
@@ -225,8 +225,8 @@ Retrieved from live RSS feeds on {datetime.now().strftime('%Y-%m-%d %H:%M')}
 - **Summary**: {article['summary']}
 - **Link**: {article['link']}
 """
-                if article.get('brisbane_relevant'):
-                    context += "- **Brisbane Relevance**: ✅ Specific to Brisbane/Queensland\n"
+                if article.get('Austalian_relevant'):
+                    context += "- **Austalian Relevance**: ✅ Specific to Austalian/Queensland\n"
                 context += "\n"
             
             context += """

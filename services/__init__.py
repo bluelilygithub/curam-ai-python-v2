@@ -1,5 +1,5 @@
 """
-Services package for Brisbane Property Intelligence
+Services package for Austalian Property Intelligence
 """
 
 from .llm_service import LLMService

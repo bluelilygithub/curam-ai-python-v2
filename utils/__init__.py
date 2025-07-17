@@ -1,5 +1,5 @@
 """
-Utilities package for Brisbane Property Intelligence
+Utilities package for Austalian Property Intelligence
 """
 
 from .health_checker import HealthChecker

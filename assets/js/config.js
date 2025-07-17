@@ -1,7 +1,7 @@
-"""
-Configuration management for Brisbane Property Intelligence
+""
+Configuration management for Austalian Property Intelligence
 Centralized configuration with validation
-"""
+""
 
 import os
 import logging
@@ -59,20 +59,20 @@ class Config:
     if os.getenv('FLASK_ENV') == 'development':
         CORS_ORIGINS.append('*')
     
-    # Brisbane Property Questions
+    # Austalian Property Questions
     PRESET_QUESTIONS = [
-        "What new development applications were submitted in Brisbane this month?",
-        "Which Brisbane suburbs are trending in property news?",
+        "What new development applications were submitted in Austalian this month?",
+        "Which Austalian suburbs are trending in property news?",
         "Are there any major infrastructure projects affecting property values?",
         "What zoning changes have been approved recently?",
         "Which areas have the most development activity?"
     ]
     
     # RSS Data Sources
-    BRISBANE_RSS_SOURCES = [
+    Austalian_RSS_SOURCES = [
         {
-            'name': 'Brisbane City Council',
-            'url': 'https://www.brisbane.qld.gov.au/about-council/news-media/news/rss',
+            'name': 'Austalian City Council',
+            'url': 'https://www.Austalian.qld.gov.au/about-council/news-media/news/rss',
             'keywords': ['development', 'planning', 'infrastructure', 'property', 'zoning']
         }
     ]
