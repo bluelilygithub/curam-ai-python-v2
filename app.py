@@ -26,6 +26,8 @@ app = Flask(__name__)
 # Configure CORS
 CORS(app, origins=Config.CORS_ORIGINS)
 
+# Update your initialize_services() function in app.py:
+
 def initialize_services():
     """Initialize all services with proper error handling"""
     services = {}
@@ -49,10 +51,19 @@ def initialize_services():
         logger.error(f"❌ LLM service initialization failed: {e}")
         services['llm'] = None
     
-    # Property Analysis Service
+    # RSS Service for Australian Property Data (MOVE THIS UP)
+    try:
+        from services.rss_service import RSSService
+        services['rss'] = RSSService()
+        logger.info("✅ RSS service initialized")
+    except Exception as e:
+        logger.error(f"❌ RSS service initialization failed: {e}")
+        services['rss'] = None
+    
+    # Property Analysis Service (UPDATED - now receives RSS service)
     if services['llm']:
         try:
-            services['property'] = PropertyAnalysisService(services['llm'])
+            services['property'] = PropertyAnalysisService(services['llm'], services['rss'])  # Pass RSS service
             logger.info("✅ Property analysis service initialized")
         except Exception as e:
             logger.error(f"❌ Property service initialization failed: {e}")
@@ -68,15 +79,6 @@ def initialize_services():
     except Exception as e:
         logger.error(f"❌ Stability service initialization failed: {e}")
         services['stability'] = None
-    
-    # RSS Service for Australian Property Data
-    try:
-        from services.rss_service import RSSService
-        services['rss'] = RSSService()
-        logger.info("✅ RSS service initialized")
-    except Exception as e:
-        logger.error(f"❌ RSS service initialization failed: {e}")
-        services['rss'] = None
     
     # Health Checker
     try:
