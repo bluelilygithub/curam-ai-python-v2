@@ -21,6 +21,7 @@
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/mcp-styles.css">
     
     <!-- Configuration (Load first) -->
     <script src="assets/js/config.js"></script>
@@ -82,15 +83,14 @@
                         </div>
                     </div>
                     
-                    <div class="ai-powered">
-                        <h4>🤖 AI Powered by:</h4>
-                        <div class="ai-providers">
-                            <div class="provider">Claude 3.5 Sonnet</div>
-                            <div class="provider">Google Gemini 1.5 Flash</div>
-                            <div class="provider">Real Australian Property RSS Feeds</div>
-                            <div class="provider">RealEstate.com.au Data</div>
-                            <div class="provider">Smart Property Investment Intelligence</div>
-                            <div class="provider">Professional Multi-LLM Analysis</div>
+                    <!-- REPLACED: Static "AI Powered by" block with Dynamic Activity Log -->
+                    <div class="progress-sidebar" id="activityLogSidebar">
+                        <div class="sidebar-header">
+                            <h4>🤖 Processing Activity</h4>
+                            <span class="sidebar-timer" id="processingTimer">Ready</span>
+                        </div>
+                        <div class="sidebar-log" id="activityLog">
+                            <div class="log-entry info">System ready for analysis...</div>
                         </div>
                     </div>
                 </div>
@@ -108,8 +108,6 @@
                 </div>
             </div>
         </div>
-
-
     </div>
 
     <!-- Loading Overlay -->
@@ -124,7 +122,18 @@
     <!-- Notification Container -->
     <div id="notificationContainer" class="notification-container"></div>
 
-    <!-- Main Application Script -->
-    <script src="assets/js/app.js"></script>
+    <!-- MCP Framework Scripts (Load before main app) -->
+    <script src="assets/js/framework/mcp-core.js"></script>
+    <script src="assets/js/framework/mcp-dashboard.js"></script>
+    <script src="assets/js/framework/mcp-session.js"></script>
+    <script src="assets/js/framework/mcp-ui-core.js"></script>
+
+    <!-- Module Files (load before main app) -->
+    <script src="assets/js/modules/activity-logger.js"></script>
+    <script src="assets/js/modules/data-manager.js"></script>
+    <script src="assets/js/modules/ui-manager.js"></script>
+
+    <!-- Main App -->
+    <script src="assets/js/app-main.js"></script>
 </body>
 </html>
