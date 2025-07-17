@@ -1,7 +1,7 @@
 """
 Professional LLM Service
 Handles Claude and Gemini integration with proper error handling
-UPDATED: Australian national scope with location intelligence + DEBUG LOGGING
+UPDATED: Location info passed as parameter (not detected from question)
 """
 
 import os
@@ -109,13 +109,13 @@ class LLMService:
         response = self.gemini_model.generate_content("hi")
         return True
     
-    def analyze_with_claude(self, question: str) -> Dict:
-        """Analyze question with Claude using working model"""
+    def analyze_with_claude_location(self, enhanced_question: str, location_info: Dict) -> Dict:
+        """Analyze question with Claude using provided location info"""
         if not self.claude_client:
             return self._error_response("Claude client not available")
         
         try:
-            prompt = self._create_strategic_prompt(question)
+            prompt = self._create_strategic_prompt_with_location(enhanced_question, location_info)
             
             # ADD DEBUG LOGGING
             logger.info(f"CLAUDE PROMPT BEING SENT: {prompt}")
@@ -142,13 +142,13 @@ class LLMService:
             logger.error(f"Claude analysis failed: {e}")
             return self._error_response(f"Claude analysis failed: {str(e)}")
     
-    def analyze_with_gemini(self, question: str, claude_context: str = "") -> Dict:
-        """Analyze question with Gemini"""
+    def analyze_with_gemini_location(self, enhanced_question: str, claude_context: str, location_info: Dict) -> Dict:
+        """Analyze question with Gemini using provided location info"""
         if not self.gemini_model:
             return self._error_response("Gemini model not available")
         
         try:
-            prompt = self._create_comprehensive_prompt(question, claude_context)
+            prompt = self._create_comprehensive_prompt_with_location(enhanced_question, claude_context, location_info)
             
             # ADD DEBUG LOGGING
             logger.info(f"GEMINI PROMPT BEING SENT: {prompt}")
@@ -171,60 +171,17 @@ class LLMService:
             logger.error(f"Gemini analysis failed: {e}")
             return self._error_response(f"Gemini analysis failed: {str(e)}")
     
-    def _detect_location_scope(self, question: str) -> Dict:
-        """Detect if question is location-specific or national"""
-        question_lower = question.lower()
-        
-        # ADD DEBUG LOGGING
-        logger.info(f"LOCATION DETECTION: Question='{question}', Lowercase='{question_lower}'")
-        
-        # Australian/Queensland specific keywords
-        Australian_keywords = ['Australian', 'queensland', 'qld', 'gold coast', 'sunshine coast']
-        
-        # Other major Australian cities
-        sydney_keywords = ['sydney', 'nsw', 'new south wales']
-        melbourne_keywords = ['melbourne', 'victoria', 'vic']
-        perth_keywords = ['perth', 'western australia', 'wa']
-        adelaide_keywords = ['adelaide', 'south australia', 'sa']
-        
-        # Check for specific locations
-        if any(keyword in question_lower for keyword in Australian_keywords):
-            result = {'scope': 'Australian', 'focus': 'Australian and Queensland'}
-            logger.info(f"LOCATION DETECTION RESULT: {result}")
-            return result
-        elif any(keyword in question_lower for keyword in sydney_keywords):
-            result = {'scope': 'sydney', 'focus': 'Sydney and New South Wales'}
-            logger.info(f"LOCATION DETECTION RESULT: {result}")
-            return result
-        elif any(keyword in question_lower for keyword in melbourne_keywords):
-            result = {'scope': 'melbourne', 'focus': 'Melbourne and Victoria'}
-            logger.info(f"LOCATION DETECTION RESULT: {result}")
-            return result
-        elif any(keyword in question_lower for keyword in perth_keywords):
-            result = {'scope': 'perth', 'focus': 'Perth and Western Australia'}
-            logger.info(f"LOCATION DETECTION RESULT: {result}")
-            return result
-        elif any(keyword in question_lower for keyword in adelaide_keywords):
-            result = {'scope': 'adelaide', 'focus': 'Adelaide and South Australia'}
-            logger.info(f"LOCATION DETECTION RESULT: {result}")
-            return result
-        else:
-            result = {'scope': 'national', 'focus': 'Australian national property market'}
-            logger.info(f"LOCATION DETECTION RESULT: {result}")
-            return result
-    
-    def _create_strategic_prompt(self, question: str) -> str:
-        """Create location-aware strategic prompt for Claude"""
-        location_info = self._detect_location_scope(question)
+    def _create_strategic_prompt_with_location(self, enhanced_question: str, location_info: Dict) -> str:
+        """Create location-aware strategic prompt for Claude using provided location info"""
         
         if location_info['scope'] == 'national':
             return f"""You are an Australian property research specialist with expertise across all major Australian markets. Analyze this question and provide strategic insights:
 
-Question: "{question}"
+{enhanced_question}
 
 Please provide:
 1. What type of property question this is (development, market, infrastructure, regulatory, etc.)
-2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Australian, Perth, Adelaide)
+2. Which Australian cities/regions are most relevant (Sydney, Melbourne, Brisbane, Perth, Adelaide)
 3. What data sources and market indicators would help answer this question
 4. Key insights to look for across Australian property markets
 5. How different markets might show varying trends or responses
@@ -234,7 +191,7 @@ Keep your response strategic and focused on Australian property markets national
         else:
             return f"""You are an Australian property research specialist with deep expertise in {location_info['focus']} within the broader Australian market context. Analyze this question:
 
-Question: "{question}"
+{enhanced_question}
 
 Please provide:
 1. What type of property question this is (development, market, infrastructure, regulatory, etc.)
@@ -245,17 +202,16 @@ Please provide:
 
 Keep your response strategic and focused on {location_info['focus']} while considering Australian market dynamics."""
     
-    def _create_comprehensive_prompt(self, question: str, claude_context: str) -> str:
-        """Create location-aware comprehensive prompt for Gemini"""
-        location_info = self._detect_location_scope(question)
+    def _create_comprehensive_prompt_with_location(self, enhanced_question: str, claude_context: str, location_info: Dict) -> str:
+        """Create location-aware comprehensive prompt for Gemini using provided location info"""
         
         if location_info['scope'] == 'national':
             base_prompt = f"""You are an Australian property market analyst with comprehensive knowledge of all major Australian property markets. Provide a detailed analysis of this question:
 
-Question: "{question}"
+{enhanced_question}
 
 Please provide a comprehensive Australian property market analysis that:
-- Covers major Australian cities (Sydney, Melbourne, Australian, Perth, Adelaide) as relevant
+- Covers major Australian cities (Sydney, Melbourne, Brisbane, Perth, Adelaide) as relevant
 - Discusses current national market trends and regional variations
 - Includes investment and development implications across different markets
 - Provides professional insights for Australian property industry professionals
@@ -266,7 +222,7 @@ Focus on delivering actionable information for Australian property professionals
         else:
             base_prompt = f"""You are an Australian property market analyst with specialized knowledge of {location_info['focus']} and its position within the Australian property market. Provide a comprehensive analysis:
 
-Question: "{question}"
+{enhanced_question}
 
 Please provide a detailed {location_info['focus']} property market analysis that:
 - Focuses specifically on {location_info['focus']} areas and suburbs
@@ -285,6 +241,44 @@ Strategic Research Context: {claude_context}
 Build upon this strategic context to provide your comprehensive analysis."""
         
         return base_prompt
+    
+    # KEEP OLD METHODS FOR BACKWARD COMPATIBILITY
+    def analyze_with_claude(self, question: str) -> Dict:
+        """Legacy method - detects location from question"""
+        location_info = self._detect_location_scope_legacy(question)
+        return self.analyze_with_claude_location(question, location_info)
+    
+    def analyze_with_gemini(self, question: str, claude_context: str = "") -> Dict:
+        """Legacy method - detects location from question"""
+        location_info = self._detect_location_scope_legacy(question)
+        return self.analyze_with_gemini_location(question, claude_context, location_info)
+    
+    def _detect_location_scope_legacy(self, question: str) -> Dict:
+        """Legacy location detection for backward compatibility"""
+        question_lower = question.lower()
+        
+        # Brisbane/Queensland specific keywords
+        brisbane_keywords = ['brisbane', 'queensland', 'qld', 'gold coast', 'sunshine coast']
+        
+        # Other major Australian cities
+        sydney_keywords = ['sydney', 'nsw', 'new south wales']
+        melbourne_keywords = ['melbourne', 'victoria', 'vic']
+        perth_keywords = ['perth', 'western australia', 'wa']
+        adelaide_keywords = ['adelaide', 'south australia', 'sa']
+        
+        # Check for specific locations
+        if any(keyword in question_lower for keyword in brisbane_keywords):
+            return {'scope': 'brisbane', 'focus': 'Brisbane and Queensland'}
+        elif any(keyword in question_lower for keyword in sydney_keywords):
+            return {'scope': 'sydney', 'focus': 'Sydney and New South Wales'}
+        elif any(keyword in question_lower for keyword in melbourne_keywords):
+            return {'scope': 'melbourne', 'focus': 'Melbourne and Victoria'}
+        elif any(keyword in question_lower for keyword in perth_keywords):
+            return {'scope': 'perth', 'focus': 'Perth and Western Australia'}
+        elif any(keyword in question_lower for keyword in adelaide_keywords):
+            return {'scope': 'adelaide', 'focus': 'Adelaide and South Australia'}
+        else:
+            return {'scope': 'national', 'focus': 'Australian national property market'}
     
     def _error_response(self, error_msg: str) -> Dict:
         """Standardized error response"""
