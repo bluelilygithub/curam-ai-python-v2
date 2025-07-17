@@ -1,5 +1,5 @@
 """
-Configuration management for Brisbane Property Intelligence
+Configuration management for Australian Property Intelligence
 Centralized configuration with validation
 """
 
@@ -65,7 +65,7 @@ class Config:
     if os.getenv('FLASK_ENV') == 'development':
         CORS_ORIGINS.append('*')
     
-    # Brisbane Property Questions
+    # Australian Property Questions
     PRESET_QUESTIONS = [
     "What are the current trends in the Australian property market?",
     "Which Australian cities are showing the strongest property growth?", 
@@ -78,13 +78,12 @@ class Config:
     ]
     
     # RSS Data Sources
-    BRISBANE_RSS_SOURCES = [
-        {
-            'name': 'Brisbane City Council',
-            'url': 'https://www.brisbane.qld.gov.au/about-council/news-media/news/rss',
-            'keywords': ['development', 'planning', 'infrastructure', 'property', 'zoning']
+    AUSTRALIAN_RSS_CONFIG = {
+            'cache_duration_hours': 1,
+            'max_articles_per_feed': 10,
+            'timeout_seconds': 15,
+            'national_focus': True
         }
-    ]
     
     # Stability AI Configuration
     STABILITY_CONFIG = {
@@ -115,7 +114,7 @@ class Config:
     MAILCHANNELS_CONFIG = {
         'api_url': 'https://api.mailchannels.net/tx/v1/send',
         'from_email': 'noreply@curam-ai.com.au',
-        'from_name': 'Brisbane Property Intelligence',
+        'from_name': 'Australian Property Intelligence',
         'notification_types': [
             'trend_alerts',
             'weekly_summaries',
