@@ -734,6 +734,9 @@ class AustralianPropertyApp {
     }
 }
 
+
+
+
 // Initialize application when DOM is ready
 let app;
 document.addEventListener('DOMContentLoaded', function() {

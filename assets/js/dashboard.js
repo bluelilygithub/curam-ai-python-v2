@@ -1,263 +1,277 @@
-// LLM Dashboard JavaScript with Chart.js
-class LLMDashboard {
+// Enhanced LLM Dashboard - 3 Charts
+class EnhancedLLMDashboard {
     constructor() {
         this.charts = {};
         this.updateInterval = null;
-        this.isProcessing = false;
         
-        // Initialize dashboard when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.init());
-        } else {
+        // Only initialize if Chart is available
+        if (typeof Chart !== 'undefined') {
             this.init();
+        } else {
+            console.warn('⚠️ Chart.js not loaded - skipping dashboard');
         }
     }
     
     init() {
-        console.log('🚀 Initializing LLM Dashboard...');
+        console.log('🚀 Initializing Enhanced LLM Dashboard...');
         this.setupCharts();
-        this.loadInitialData();
-        this.startAutoUpdate();
+        this.loadData();
         
-        // Hook into existing search function to show real-time processing
-        this.hookIntoSearchFunction();
+        // Update every 60 seconds
+        this.updateInterval = setInterval(() => {
+            this.loadData();
+        }, 60000);
     }
     
     setupCharts() {
-        // Response Times Line Chart
-        this.charts.responseTimes = new Chart(
-            document.getElementById('responseTimesChart').getContext('2d'),
-            {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Response Time (seconds)',
-                        data: [],
-                        borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Seconds'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Recent Queries'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        );
-        
-        // Provider Performance Bar Chart
-        this.charts.providerPerformance = new Chart(
-            document.getElementById('providerPerformanceChart').getContext('2d'),
-            {
-                type: 'bar',
-                data: {
-                    labels: ['Claude', 'Gemini'],
-                    datasets: [
-                        {
-                            label: 'Avg Response Time (s)',
-                            data: [0, 0],
-                            backgroundColor: ['#059669', '#dc2626'],
-                            borderColor: ['#047857', '#b91c1c'],
-                            borderWidth: 1,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Success Rate (%)',
-                            data: [100, 100],
-                            backgroundColor: ['rgba(5, 150, 105, 0.3)', 'rgba(220, 38, 38, 0.3)'],
-                            borderColor: ['#047857', '#b91c1c'],
-                            borderWidth: 1,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Response Time (s)'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Success Rate (%)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom'
-                        }
-                    }
-                }
-            }
-        );
-        
-        // Location Distribution Pie Chart
-        this.charts.locationDistribution = new Chart(
-            document.getElementById('locationDistributionChart').getContext('2d'),
-            {
-                type: 'doughnut',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        data: [],
-                        backgroundColor: [
-                            '#4f46e5',  // National - Blue
-                            '#059669',  // Brisbane - Green
-                            '#dc2626',  // Sydney - Red
-                            '#f59e0b',  // Melbourne - Yellow
-                            '#7c3aed',  // Perth - Purple
-                        ],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        );
-        
-        console.log('✅ Charts initialized successfully');
+        this.setupResponseTimeChart();
+        this.setupProviderPerformanceChart();
+        this.setupRSSQualityChart();
     }
     
-    async loadInitialData() {
+    setupResponseTimeChart() {
+        const canvas = document.getElementById('responseTimesChart');
+        if (!canvas) {
+            console.warn('⚠️ Response times chart canvas not found');
+            return;
+        }
+        
+        this.charts.responseTimes = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+                datasets: [{
+                    label: 'Response Time (seconds)',
+                    data: [0, 0, 0, 0, 0],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Seconds',
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Recent Queries',
+                            font: { size: 11 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+        
+        console.log('✅ Response time chart initialized');
+    }
+    
+    setupProviderPerformanceChart() {
+        const canvas = document.getElementById('providerPerformanceChart');
+        if (!canvas) {
+            console.warn('⚠️ Provider performance chart canvas not found');
+            return;
+        }
+        
+        this.charts.providerPerformance = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Claude', 'Gemini'],
+                datasets: [{
+                    label: 'Avg Response Time (s)',
+                    data: [0, 0],
+                    backgroundColor: ['#059669', '#dc2626'],
+                    borderColor: ['#047857', '#b91c1c'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Seconds',
+                            font: { size: 11 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y}s`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('✅ Provider performance chart initialized');
+    }
+    
+    setupRSSQualityChart() {
+        const canvas = document.getElementById('rssQualityChart');
+        if (!canvas) {
+            console.warn('⚠️ RSS quality chart canvas not found');
+            return;
+        }
+        
+        this.charts.rssQuality = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Articles Contributed',
+                    data: [],
+                    backgroundColor: [
+                        '#4f46e5',  // RealEstate.com.au
+                        '#059669',  // Smart Property Investment
+                        '#f59e0b',  // PropertyMe
+                        '#dc2626',  // View.com.au
+                        '#7c3aed'   // Others
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal bars
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Articles',
+                            font: { size: 11 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.parsed.x} articles`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('✅ RSS quality chart initialized');
+    }
+    
+    async loadData() {
         try {
-            console.log('📊 Loading initial dashboard data...');
-            const response = await fetch('/api/property/stats');
+            const response = await fetch('https://curam-ai-python-v2-production.up.railway.app/api/property/stats');
             const data = await response.json();
             
             if (data.success && data.stats.llm_performance) {
-                this.updateDashboard(data.stats);
-                console.log('✅ Initial data loaded');
+                this.updateCharts(data.stats);
+                this.updateMetrics(data.stats);
+                console.log('📊 All charts updated with new data');
             } else {
                 console.warn('⚠️ No LLM performance data available');
                 this.showNoDataState();
             }
         } catch (error) {
-            console.error('❌ Failed to load initial data:', error);
+            console.error('❌ Failed to load dashboard data:', error);
             this.showErrorState();
         }
     }
     
-    updateDashboard(stats) {
+    updateCharts(stats) {
         const llmPerf = stats.llm_performance;
         
         // Update Response Times Chart
-        if (llmPerf.response_times && llmPerf.response_times.length > 0) {
-            const labels = llmPerf.response_times.map((_, index) => `Q${index + 1}`);
-            const times = llmPerf.response_times.map(q => q.processing_time);
+        if (this.charts.responseTimes && llmPerf.response_times) {
+            const times = llmPerf.response_times.slice(-5);
+            const labels = times.map((_, index) => `Q${index + 1}`);
+            const values = times.map(q => q.processing_time || 0);
+            
+            while (values.length < 5) {
+                values.unshift(0);
+            }
             
             this.charts.responseTimes.data.labels = labels;
-            this.charts.responseTimes.data.datasets[0].data = times;
+            this.charts.responseTimes.data.datasets[0].data = values;
             this.charts.responseTimes.update('none');
         }
         
         // Update Provider Performance Chart
-        if (llmPerf.provider_performance) {
-            const claude = llmPerf.provider_performance.claude;
-            const gemini = llmPerf.provider_performance.gemini;
+        if (this.charts.providerPerformance && llmPerf.provider_performance) {
+            const claude = llmPerf.provider_performance.claude || { avg_response_time: 0 };
+            const gemini = llmPerf.provider_performance.gemini || { avg_response_time: 0 };
             
             this.charts.providerPerformance.data.datasets[0].data = [
                 claude.avg_response_time || 0,
                 gemini.avg_response_time || 0
             ];
-            this.charts.providerPerformance.data.datasets[1].data = [
-                claude.success_rate || 100,
-                gemini.success_rate || 100
-            ];
             this.charts.providerPerformance.update('none');
         }
         
-        // Update Location Distribution Chart
-        if (llmPerf.location_breakdown) {
-            const locations = Object.keys(llmPerf.location_breakdown);
-            const counts = Object.values(llmPerf.location_breakdown);
-            
-            this.charts.locationDistribution.data.labels = locations;
-            this.charts.locationDistribution.data.datasets[0].data = counts;
-            this.charts.locationDistribution.update('none');
+        // Update RSS Quality Chart
+        if (this.charts.rssQuality && stats.rss_status) {
+            this.updateRSSQualityChart(stats.rss_status);
         }
-        
-        // Update System Metrics
-        this.updateSystemMetrics(stats);
     }
     
-    updateSystemMetrics(stats) {
+    updateRSSQualityChart(rssStatus) {
+        // Simulate RSS source contribution data
+        // In a real implementation, you'd track this in your backend
+        const sources = [
+            { name: 'RealEstate.com.au', articles: 5 },
+            { name: 'Smart Property Investment', articles: 3 },
+            { name: 'PropertyMe Blog', articles: 2 },
+            { name: 'View.com.au', articles: 1 }
+        ];
+        
+        // Filter out sources with 0 articles
+        const activeSources = sources.filter(s => s.articles > 0);
+        
+        this.charts.rssQuality.data.labels = activeSources.map(s => s.name);
+        this.charts.rssQuality.data.datasets[0].data = activeSources.map(s => s.articles);
+        this.charts.rssQuality.update('none');
+    }
+    
+    updateMetrics(stats) {
         const llmPerf = stats.llm_performance;
-        const rssStatus = stats.rss_status;
         
         // Success Rate
         const successRateEl = document.getElementById('success-rate');
         if (successRateEl && llmPerf.success_rates) {
             successRateEl.textContent = `${llmPerf.success_rates.overall}%`;
-            successRateEl.className = llmPerf.success_rates.overall >= 90 ? 'metric-value success' : 'metric-value';
         }
         
         // Average Response Time
         const avgResponseEl = document.getElementById('avg-response');
         if (avgResponseEl && llmPerf.provider_performance) {
-            const claude = llmPerf.provider_performance.claude.avg_response_time || 0;
-            const gemini = llmPerf.provider_performance.gemini.avg_response_time || 0;
+            const claude = llmPerf.provider_performance.claude?.avg_response_time || 0;
+            const gemini = llmPerf.provider_performance.gemini?.avg_response_time || 0;
             const avg = ((claude + gemini) / 2).toFixed(1);
             avgResponseEl.textContent = `${avg}s`;
-        }
-        
-        // RSS Status
-        const rssStatusEl = document.getElementById('rss-status');
-        if (rssStatusEl && rssStatus) {
-            rssStatusEl.textContent = `${rssStatus.active_feeds}/${rssStatus.total_feeds}`;
-            rssStatusEl.className = rssStatus.active_feeds >= rssStatus.total_feeds ? 'metric-value success' : 'metric-value';
         }
         
         // Total Queries
@@ -265,125 +279,39 @@ class LLMDashboard {
         if (totalQueriesEl && llmPerf.total_queries_analyzed) {
             totalQueriesEl.textContent = llmPerf.total_queries_analyzed;
         }
-    }
-    
-    showProcessingState(question) {
-        this.isProcessing = true;
         
-        // Update current status
-        const locationEl = document.getElementById('current-location');
-        const rssEl = document.getElementById('current-rss');
-        const llmEl = document.getElementById('current-llm');
-        
-        if (locationEl) {
-            locationEl.textContent = 'Analyzing...';
-            locationEl.className = 'status-value processing';
-        }
-        
-        if (rssEl) {
-            rssEl.textContent = 'Fetching...';
-            rssEl.className = 'status-value processing';
-        }
-        
-        if (llmEl) {
-            llmEl.textContent = 'Processing...';
-            llmEl.className = 'status-value processing';
-        }
-        
-        // Add pulse animation to metrics
-        document.querySelectorAll('.metric-value').forEach(el => {
-            el.classList.add('updating');
-        });
-    }
-    
-    showCompletedState(result) {
-        this.isProcessing = false;
-        
-        // Update current status
-        const locationEl = document.getElementById('current-location');
-        const rssEl = document.getElementById('current-rss');
-        const llmEl = document.getElementById('current-llm');
-        
-        if (locationEl && result.processing_stages) {
-            const location = result.processing_stages.location_detected || 'National';
-            locationEl.textContent = location;
-            locationEl.className = 'status-value success';
-        }
-        
-        if (rssEl && result.processing_stages) {
-            const sources = result.processing_stages.rss_data_sources || 0;
-            rssEl.textContent = `${sources} sources`;
-            rssEl.className = 'status-value success';
-        }
-        
-        if (llmEl && result.processing_time) {
-            llmEl.textContent = `${result.processing_time}s`;
-            llmEl.className = 'status-value success';
-        }
-        
-        // Remove pulse animation
-        document.querySelectorAll('.metric-value').forEach(el => {
-            el.classList.remove('updating');
-        });
-        
-        // Refresh dashboard data
-        setTimeout(() => this.loadInitialData(), 1000);
-    }
-    
-    hookIntoSearchFunction() {
-        // Hook into the existing analyzePropertyQuestion function
-        const originalAnalyze = window.analyzePropertyQuestion;
-        if (originalAnalyze) {
-            window.analyzePropertyQuestion = async (question) => {
-                console.log('🔍 Dashboard tracking query:', question);
-                this.showProcessingState(question);
-                
-                try {
-                    const result = await originalAnalyze(question);
-                    this.showCompletedState(result);
-                    return result;
-                } catch (error) {
-                    this.showErrorState();
-                    throw error;
-                }
-            };
+        // RSS Status
+        const rssStatusEl = document.getElementById('rss-status');
+        if (rssStatusEl && stats.rss_status) {
+            rssStatusEl.textContent = `${stats.rss_status.active_feeds}/${stats.rss_status.total_feeds}`;
         }
     }
     
     showNoDataState() {
-        // Show placeholder when no data available
+        Object.values(this.charts).forEach(chart => {
+            if (chart && chart.data && chart.data.datasets[0]) {
+                // Reset chart data to zeros
+                chart.data.datasets[0].data = chart.data.datasets[0].data.map(() => 0);
+                chart.update('none');
+            }
+        });
+        
         document.querySelectorAll('.metric-value').forEach(el => {
-            if (el.textContent === '---' || el.textContent === '---s' || el.textContent === '---%') {
+            if (el.textContent.includes('---')) {
                 el.textContent = 'No data';
-                el.className = 'metric-value';
             }
         });
     }
     
     showErrorState() {
-        document.querySelectorAll('.metric-value').forEach(el => {
-            el.classList.remove('updating', 'processing');
-            el.classList.add('error');
-        });
+        console.error('❌ Dashboard in error state');
         
-        const llmEl = document.getElementById('current-llm');
-        if (llmEl) {
-            llmEl.textContent = 'Error';
-            llmEl.className = 'status-value error';
-        }
-    }
-    
-    startAutoUpdate() {
-        // Update dashboard every 30 seconds
-        this.updateInterval = setInterval(() => {
-            if (!this.isProcessing) {
-                this.loadInitialData();
-            }
-        }, 30000);
+        document.querySelectorAll('.metric-value').forEach(el => {
+            el.style.color = '#dc2626';
+        });
     }
     
     destroy() {
-        // Cleanup method
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }
@@ -394,8 +322,5 @@ class LLMDashboard {
     }
 }
 
-// Initialize dashboard when script loads
-window.llmDashboard = new LLMDashboard();
-
-// Export for external use
-window.LLMDashboard = LLMDashboard;
+// Initialize enhanced dashboard when script loads
+window.enhancedDashboard = new EnhancedLLMDashboard();
